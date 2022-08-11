@@ -1,4 +1,7 @@
 import { FastifyReply, FastifyRequest, RouteOptions } from 'fastify';
+import comicsController from '../controllers/comics.controller';
+
+const { handleSearch } = comicsController();
 
 interface FiltersQuery {
     genres: number;
@@ -7,11 +10,12 @@ interface FiltersQuery {
 export const comicSearchRoute: RouteOptions = {
     url: '/comics/search',
     method: 'GET',
-    handler: function (req: FastifyRequest, res: FastifyReply) {
-        res.send({
-            data: 'Hello from comics search',
-        });
+    schema: {
+        querystring: {
+            q: { type: 'string' },
+        },
     },
+    handler: handleSearch,
 };
 
 export const comicFiltersRoute: RouteOptions = {

@@ -11,9 +11,13 @@
         "dev": "tsnd --respawn --clear src/index.ts"
     },
     "dependencies": {
+        "axios": "^0.27.2",
+        "dotenv": "^16.0.1",
         "fastify": "^4.4.0",
         "fastify-plugin": "^4.1.0",
-        "faunadb": "^4.6.0"
+        "faunadb": "^4.6.0",
+        "mongoose": "^6.5.2",
+        "node-html-parser": "^5.4.1"
     },
     "devDependencies": {
         "@types/node": "^18.6.5",
