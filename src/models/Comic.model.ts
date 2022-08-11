@@ -1,8 +1,10 @@
 import mongoose from 'mongoose';
+
 import { mongoDbRemoteClient } from '../configs';
+
 const { Schema } = mongoose;
 
-const ChapterSchema = new Schema({
+export const comicSchema = {
     custom_id: { type: Number },
     status: {
         type: String,
@@ -62,6 +64,8 @@ const ChapterSchema = new Schema({
     createdAt: {
         type: Date,
     },
-});
+};
 
-export default mongoDbRemoteClient.model('comics', ChapterSchema);
+const ComicSchema = new Schema(comicSchema);
+
+export default mongoDbRemoteClient.model('comics', ComicSchema);

@@ -5,6 +5,7 @@
 
 #logs
 /src/logs
+/src/test
 
 # testing
 /coverage

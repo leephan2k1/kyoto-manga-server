@@ -1,11 +1,7 @@
-import { FastifyReply, FastifyRequest, RouteOptions } from 'fastify';
+import { RouteOptions } from 'fastify';
 import comicsController from '../controllers/comics.controller';
 
-const { handleSearch } = comicsController();
-
-interface FiltersQuery {
-    genres: number;
-}
+const { handleSearch, handleFilters } = comicsController();
 
 export const comicSearchRoute: RouteOptions = {
     url: '/comics/search',
@@ -23,17 +19,16 @@ export const comicFiltersRoute: RouteOptions = {
     method: 'GET',
     schema: {
         querystring: {
-            genres: { type: 'integer' },
+            genres: { type: 'integer', default: -1 },
+            gender: { type: 'integer', default: -1 },
+            status: { type: 'integer', default: -1 },
+            top: { type: 'integer', default: 0 },
+            minChapter: { type: 'integer', default: 1 },
+            page: { type: 'integer', default: 1 },
         },
     },
-    handler: function (req: FastifyRequest, res: FastifyReply) {
-        const { genres } = req.query as FiltersQuery;
-
-        res.send({
-            data: `Hello from comics filter ${genres}`,
-        });
-    },
+    handler: handleFilters,
 };
 
-const comicsRoute = [comicSearchRoute, comicFiltersRoute];
-export default comicsRoute;
+const comicsRoutes = [comicSearchRoute, comicFiltersRoute];
+export default comicsRoutes;

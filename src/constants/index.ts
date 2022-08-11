@@ -2,6 +2,7 @@ import { Genres_NT } from 'types';
 
 export const GENRES_NT: Genres_NT[] = [
     { id: '1', value: 'action', label: 'Action' },
+    { id: '2', value: 'truong-thanh', label: 'Adult' },
     { id: '3', value: 'adventure', label: 'Adventure' },
     { id: '4', value: 'anime', label: 'Anime' },
     { id: '5', value: 'chuyen-sinh-213', label: 'Chuyển sinh' },
@@ -26,6 +27,7 @@ export const GENRES_NT: Genres_NT[] = [
     { id: '26', value: 'martial-arts', label: 'Martial Arts' },
     { id: '27', value: 'mature', label: 'Mature' },
     { id: '28', value: 'mecha-117', label: 'Mecha' },
+    { id: '30', value: 'mystery', label: 'Mystery' },
     { id: '32', value: 'ngon-tinh', label: 'Ngôn tình' },
     { id: '33', value: 'one-shot', label: 'One shot' },
     { id: '34', value: 'psychological', label: 'Psychological' },
@@ -55,5 +57,4 @@ export const GENRES_NT: Genres_NT[] = [
     { id: '56', value: 'webtoon', label: 'Webtoon' },
     { id: '57', value: 'xuyen-khong-205', label: 'Xuyên không' },
     { id: '60', value: '16', label: '16+' },
-    { id: '2', value: 'truong-thanh', label: 'Trưởng thành' },
 ];

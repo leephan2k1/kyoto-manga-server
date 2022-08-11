@@ -51,8 +51,9 @@ export default class NtModel extends Scraper {
             const tooltip = manga.querySelectorAll('.box_li .message_main p');
             let status: string | null = '';
             let author: string | null = '';
-            let genres: string[] | Genres_NT[] | null = [''];
+            let genres: string[] | Genres_NT[] = [];
             let otherName: string | null = '';
+
             tooltip.forEach((item) => {
                 const title = item.querySelector('label')?.textContent;
                 const str = normalizeString(
@@ -75,17 +76,16 @@ export default class NtModel extends Scraper {
                         otherName = str;
                         break;
                 }
+            });
 
-                //@ts-ignore
-                genres = genres?.map((genre) => {
-                    const genreObj = GENRES_NT.find(
-                        (e) =>
-                            e.label.toLowerCase().trim() ===
-                            genre.toString().toLocaleLowerCase().trim(),
-                    );
-                    if (genreObj) return genreObj;
-                    else return genre;
-                });
+            //@ts-ignore
+            genres = genres?.map((genre) => {
+                const genreObj = GENRES_NT.find(
+                    (e) =>
+                        e.label.toLowerCase().trim() ===
+                        genre.toString().toLocaleLowerCase().trim(),
+                );
+                return genreObj;
             });
 
             const review = normalizeString(
@@ -145,4 +145,41 @@ export default class NtModel extends Scraper {
             return { mangaData: [], totalPages: 0 };
         }
     }
+
+    public async advancedSearch(
+        genres: number,
+        minchapter: number,
+        top: number,
+        page: number,
+        status: number,
+        gender: number,
+    ) {
+        try {
+            const { data } = await this.client.get(
+                `${this.baseUrl}/tim-truyen-nang-cao`,
+                {
+                    params: {
+                        genres,
+                        gender,
+                        minchapter,
+                        sort: top,
+                        page,
+                        status,
+                    },
+                },
+            );
+
+            const document = parse(data);
+
+            //@ts-ignore
+            const { mangaData, totalPages } = await this.parseSource(document);
+
+            return { mangaData, totalPages };
+        } catch (err) {
+            console.log(err);
+            return { mangaData: [], totalPages: 0 };
+        }
+    }
 }
+
+export const Nt = NtModel.Instance(process.env.NT_SOURCE_URL as string);
