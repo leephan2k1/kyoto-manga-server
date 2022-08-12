@@ -1,16 +1,23 @@
 import { RouteOptions, FastifyRequest, FastifyReply } from 'fastify';
 import chaptersController from '../controllers/chapters.controller';
 
-const { handleGetChapter } = chaptersController();
+const { handleGetPages } = chaptersController();
 
 export const chapterInfoRoute: RouteOptions = {
-    url: '/chapters/:chapterSlug',
-    method: 'GET',
-    handler: async (req: FastifyRequest, rep: FastifyReply) => {
-        rep.status(200).send({
-            message: 'send from chapterSlug route',
-        });
+    url: '/chapters',
+    method: 'POST',
+    schema: {
+        body: {
+            type: 'object',
+            properties: {
+                source: { type: 'string' },
+                chapterSlug: { type: 'string' },
+                comicName: { type: 'string' },
+                comicSlug: { type: 'string' },
+            },
+        },
     },
+    handler: handleGetPages,
 };
 
 const chapterRoutes = [chapterInfoRoute];

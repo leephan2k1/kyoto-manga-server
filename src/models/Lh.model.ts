@@ -3,6 +3,7 @@ import { parse } from 'node-html-parser';
 import { Chapter, LHSearch, Page_Image } from 'types';
 
 import Scraper from '../libs/Scraper';
+import { normalizeString } from '../utils/stringHandler';
 
 export default class LHModal extends Scraper {
     private static instance: LHModal;

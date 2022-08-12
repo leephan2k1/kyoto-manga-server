@@ -1,12 +1,29 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
+import { Comic_Chapters, Source_Type, Chapter_Pages } from 'types';
+
+import { LhURL, NtURL, OtkUrl } from '../configs';
+import ComicsCenter from '../models';
 import Chapter from '../models/Chapter.model';
 import Comic from '../models/Comic.model';
-import ComicsCenter from '../models';
-import { Source_Type, Comic_Chapters } from 'types';
+import lhModel from '../models/Lh.model';
+import NtcModel from '../models/Ntc.model';
+import OTKModel from '../models/Otk.model';
+import Page from '../models/Page.model';
 
-const { getChapter } = ComicsCenter();
+const Nt = NtcModel.Instance(NtURL);
+const Lh = lhModel.Instance(LhURL, 30000);
+const Otk = OTKModel.Instance(OtkUrl);
+
+const { getChapter, getPages } = ComicsCenter();
 
 interface ChapterParams {
+    comicSlug: string;
+}
+
+interface PagesChapterBody {
+    chapterSlug: string;
+    source: string;
+    comicName: string;
     comicSlug: string;
 }
 
@@ -162,6 +179,41 @@ export default function chaptersController() {
             return rep.status(200).send({
                 message: 'chapters are the latest',
             });
+        },
+
+        handleGetPages: async function (
+            req: FastifyRequest,
+            rep: FastifyReply,
+        ) {
+            try {
+                const { chapterSlug, comicName, source, comicSlug } =
+                    req.body as PagesChapterBody;
+
+                const pages = await getPages(
+                    chapterSlug,
+                    source as Source_Type,
+                );
+
+                if (pages && pages.length) {
+                    const pagesObj: Chapter_Pages = {
+                        chapterSlug,
+                        comicName,
+                        source,
+                        pages,
+                        comicSlug,
+                    };
+
+                    await Page.create(pagesObj);
+
+                    return rep.status(201).send({
+                        message: `save pages ${chapterSlug} successfully`,
+                    });
+                }
+
+                return rep.status(404).send({
+                    message: 'not found',
+                });
+            } catch (err) {}
         },
     };
 }

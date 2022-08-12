@@ -1,11 +1,13 @@
-import NtcModel from '../models/Ntc.model';
-import lhModel from '../models/Lh.model';
-import OTKModel from '../models/Otk.model';
 import { Comic, Source_Type } from 'types';
 
-const Nt = NtcModel.Instance(process.env.NT_SOURCE_URL as string);
-const Lh = lhModel.Instance(process.env.LH_SOURCE_URL as string, 30000);
-const Otk = OTKModel.Instance(process.env.OTK_SOURCE_URL as string);
+import { LhURL, NtURL, OtkUrl } from '../configs';
+import lhModel from '../models/Lh.model';
+import NtcModel from '../models/Ntc.model';
+import OTKModel from '../models/Otk.model';
+
+const Nt = NtcModel.Instance(NtURL);
+const Lh = lhModel.Instance(LhURL, 30000);
+const Otk = OTKModel.Instance(OtkUrl);
 
 export default function ComicsCenter() {
     return {
@@ -57,6 +59,22 @@ export default function ComicsCenter() {
                 }
             } catch (err) {
                 console.log(`error get chapter ${err}`);
+                return [];
+            }
+        },
+
+        getPages: async (chapterSlug: string, source: Source_Type) => {
+            try {
+                switch (source) {
+                    case 'LHM':
+                        return Lh.getChapterPages(chapterSlug);
+                    case 'NTC':
+                        return Nt.getChapterPages(chapterSlug);
+                    case 'OTK':
+                        return Otk.getChapterPages(chapterSlug);
+                }
+            } catch (err) {
+                console.log(`error get pages ${err}`);
                 return [];
             }
         },

@@ -1,6 +1,6 @@
 import { AxiosRequestConfig } from 'axios';
 import { parse } from 'node-html-parser';
-import { Chapter, Genres_NT } from 'types';
+import { Chapter, Genres_NT, Page_Image } from 'types';
 
 import { GENRES_NT } from '../constants';
 import Scraper from '../libs/Scraper';
@@ -239,6 +239,49 @@ export default class NtModel extends Scraper {
         } catch (err) {
             console.log(err);
             return { mangaData: [], totalPages: 0 };
+        }
+    }
+
+    public async getChapterPages(chapterSlug: string): Promise<Page_Image[]> {
+        try {
+            const { data } = await this.client.get(
+                `${this.baseUrl}${chapterSlug}`,
+            );
+            const document = parse(data);
+
+            const pagesRaw = document.querySelectorAll(
+                '.reading-detail .page-chapter',
+            );
+
+            const pages = [...pagesRaw].map((page) => {
+                const id = String(
+                    page.querySelector('img')?.getAttribute('data-index'),
+                );
+
+                const source = page
+                    .querySelector('img')
+                    ?.getAttribute('data-original');
+
+                const srcCDN = page
+                    .querySelector('img')
+                    ?.getAttribute('data-cdn');
+
+                const alternativeSrc = page
+                    .querySelector('img')
+                    ?.getAttribute('src');
+
+                const imgSrc = super.unshiftProtocol(String(source));
+
+                const imgSrcCDN = super.unshiftProtocol(
+                    String(srcCDN ? srcCDN : alternativeSrc),
+                );
+
+                return { id, src: imgSrc, fallbackSrc: imgSrcCDN };
+            });
+
+            return pages;
+        } catch (err) {
+            return [] as Page_Image[];
         }
     }
 }
