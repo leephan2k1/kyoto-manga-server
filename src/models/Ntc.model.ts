@@ -1,9 +1,10 @@
 import { AxiosRequestConfig } from 'axios';
 import { parse } from 'node-html-parser';
-import { Genres_NT } from 'types';
+import { Chapter, Genres_NT } from 'types';
 
 import { GENRES_NT } from '../constants';
 import Scraper from '../libs/Scraper';
+import logEvents from '../utils/logEvents';
 import { normalizeString } from '../utils/stringHandler';
 
 export default class NtModel extends Scraper {
@@ -143,6 +144,66 @@ export default class NtModel extends Scraper {
         } catch (err) {
             console.log(err);
             return { mangaData: [], totalPages: 0 };
+        }
+    }
+
+    public async getChapters(comicSlug: string): Promise<Chapter[]> {
+        try {
+            const { data } = await this.client.get(
+                `${this.baseUrl}/truyen-tranh/${comicSlug}`,
+            );
+
+            const document = parse(data);
+
+            const chapterListRaw = document.querySelectorAll(
+                `#item-detail #nt_listchapter ul .row`,
+            );
+            const chapterList = [...chapterListRaw].map((chapter) => {
+                const chapterTitle = normalizeString(
+                    String(chapter.querySelector('a')?.textContent),
+                );
+                const chapterId = chapter
+                    .querySelector('a')
+                    ?.getAttribute('data-id');
+
+                const arr = String(
+                    chapter.querySelector('a')?.getAttribute('href'),
+                ).split('/');
+
+                const slug = String(
+                    chapter.querySelector('a')?.getAttribute('href'),
+                );
+                const chapterSlug = slug.slice(slug.indexOf('/truyen-tranh'));
+
+                const chapterStr = arr[arr.length - 2];
+
+                const chapterNumber = chapterStr.slice(
+                    chapterStr.indexOf('-') + 1,
+                );
+
+                const updatedAt = normalizeString(
+                    String(chapter.querySelectorAll('div')[1].textContent),
+                );
+
+                const view = normalizeString(
+                    String(chapter.querySelectorAll('div')[2].textContent),
+                );
+
+                return {
+                    chapterId: String(chapterId),
+                    chapterSlug,
+                    chapterNumber,
+                    chapterTitle,
+                    updatedAt,
+                    view,
+                };
+            });
+
+            return chapterList;
+        } catch (err) {
+            console.log(`Scrape chapter ${comicSlug} error`);
+            logEvents('chapters', `get ${comicSlug} source NTC error!`);
+            return [] as Chapter[];
         }
     }
 

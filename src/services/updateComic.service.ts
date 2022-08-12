@@ -1,7 +1,45 @@
 import { Nt } from '../models/Ntc.model';
 import Comic from '../models/Comic.model';
 import RTComic from '../models/RealTimeComic.model';
+import ComicsCenter from '../models';
+
 import { uploadImage } from './cloudinary.service';
+
+export async function insertNewComic(name: string) {
+    try {
+        const { mangaData } = await Nt.searchQuery(name);
+
+        const { getComics } = ComicsCenter();
+
+        //@ts-ignore
+        const data = await getComics(mangaData);
+
+        const pageData = data?.map((e) => {
+            if (e.status === 'fulfilled') {
+                return e.value;
+            }
+        });
+
+        //save to mongodb:
+        if (pageData && pageData.length) {
+            await Promise.allSettled(
+                pageData?.map(async (comic) => {
+                    await Comic.updateOne(
+                        {
+                            name: comic?.name,
+                        },
+                        comic,
+                        { upsert: true },
+                    );
+
+                    console.log(`save ${comic?.name} sucessfully`);
+                }),
+            );
+        }
+
+        return mangaData;
+    } catch (err) {}
+}
 
 // tim-truyen-nang-cao?genres=23&notgenres=&gender=-1&status=-1&minchapter=1&sort=10
 export async function updateTopAllView() {
@@ -15,7 +53,10 @@ export async function updateTopAllView() {
                 const comicDb = await Comic.findOne({ name: cmc.name });
 
                 if (comicDb) comics.push(comicDb);
-                else comics.push(cmc);
+                else {
+                    const newCmc = await insertNewComic(cmc.name);
+                    comics.push(newCmc);
+                }
             }),
         );
 
@@ -47,7 +88,10 @@ export async function updateTopMonthView() {
                 const comicDb = await Comic.findOne({ name: cmc.name });
 
                 if (comicDb) comics.push(comicDb);
-                else comics.push(cmc);
+                else {
+                    const newCmc = await insertNewComic(cmc.name);
+                    comics.push(newCmc);
+                }
             }),
         );
 
@@ -77,7 +121,10 @@ export async function updateTopWeekView() {
                 const comicDb = await Comic.findOne({ name: cmc.name });
 
                 if (comicDb) comics.push(comicDb);
-                else comics.push(cmc);
+                else {
+                    const newCmc = await insertNewComic(cmc.name);
+                    comics.push(newCmc);
+                }
             }),
         );
 
@@ -107,7 +154,10 @@ export async function updateTopDayView() {
                 const comicDb = await Comic.findOne({ name: cmc.name });
 
                 if (comicDb) comics.push(comicDb);
-                else comics.push(cmc);
+                else {
+                    const newCmc = await insertNewComic(cmc.name);
+                    comics.push(newCmc);
+                }
             }),
         );
 

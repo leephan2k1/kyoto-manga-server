@@ -1,12 +1,17 @@
 import { DoneFuncWithErrOrRes, FastifyInstance, RouteOptions } from 'fastify';
-import comicsRoutes from './comics.route';
+import comicRoutes from './comic.routes';
+import chapterRoutes from './chapter.routes';
 
 export default function routes(
     fastify: FastifyInstance,
     options: RouteOptions,
     done: DoneFuncWithErrOrRes,
 ) {
-    comicsRoutes.forEach((route) => {
+    comicRoutes.forEach((route) => {
+        fastify.route(route);
+    });
+
+    chapterRoutes.forEach((route) => {
         fastify.route(route);
     });
 

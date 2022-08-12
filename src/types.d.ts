@@ -15,11 +15,23 @@ export interface Comic {
     updatedAt: string;
 }
 
+export type Source_Type = 'OTK' | 'LHM' | 'T24' | 'NTC';
+
 export interface Genre {
     id: string;
     value: string;
     label: string;
     _id?: string;
+}
+
+export interface Comic_Chapters {
+    comicSlug: string;
+    comicName: string;
+    source: string;
+    chapters_list: {
+        sourceName: string;
+        chapters: Chapter[];
+    }[];
 }
 
 export interface Chapter {
