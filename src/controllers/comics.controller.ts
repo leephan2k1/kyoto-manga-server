@@ -1,12 +1,8 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 
-import RTComic from '../models/RealTimeComic.model';
 import Comic from '../models/Comic.model';
 import NtcModel from '../models/Ntc.model';
-import {
-    insertNewComic,
-    updateNewUpdatedComic,
-} from '../services/updateComic.service';
+import { insertNewComic } from '../services/updateComic.service';
 
 const Nt = NtcModel.Instance(process.env.NT_SOURCE_URL as string);
 
@@ -21,10 +17,6 @@ interface FiltersQuery {
     top: number;
     minChapter: number;
     page: number;
-}
-
-interface NewQuery {
-    type: string;
 }
 
 export default function comicsController() {
@@ -61,42 +53,23 @@ export default function comicsController() {
             }
         },
 
-        handleGetNew: async function (req: FastifyRequest, res: FastifyReply) {
-            const { type } = req.query as NewQuery;
-
-            const result = await RTComic.findOne({ type });
-
-            if (result) {
-                console.log('get new comics hit');
-                const { comics } = result;
-
-                return res.status(200).send({
-                    message: 'ok',
-                    comics,
-                });
-            }
-
-            console.log('get new comics miss');
-            const resultMiss = await updateNewUpdatedComic();
-            //@ts-ignore
-            const { comics } = resultMiss;
-
-            if (!comics || comics.length === 0)
-                return res.status(404).send({
-                    message: 'not found',
-                });
-
-            return res.status(201).send({
-                message: 'ok',
-                comics,
-            });
-        },
-
         handleFilters: async function (req: FastifyRequest, res: FastifyReply) {
             const { gender, genres, minChapter, page, status, top } =
                 req.query as FiltersQuery;
 
-            res.status(200).send(req.query);
+            const result = await Nt.advancedSearch(
+                genres,
+                minChapter,
+                top,
+                page,
+                status,
+                gender,
+            );
+
+            res.status(200).send({
+                message: 'ok',
+                result,
+            });
         },
     };
 }
