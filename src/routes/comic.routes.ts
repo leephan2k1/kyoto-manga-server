@@ -2,7 +2,7 @@ import { RouteOptions } from 'fastify';
 import comicsController from '../controllers/comics.controller';
 import chaptersController from '../controllers/chapters.controller';
 
-const { handleSearch, handleFilters } = comicsController();
+const { handleSearch, handleFilters, handleGetNew } = comicsController();
 const { handleGetChapter } = chaptersController();
 
 export const comicSearchRoute: RouteOptions = {
@@ -14,6 +14,17 @@ export const comicSearchRoute: RouteOptions = {
         },
     },
     handler: handleSearch,
+};
+
+export const comicNewRoute: RouteOptions = {
+    url: '/comics/new',
+    method: 'GET',
+    schema: {
+        querystring: {
+            type: { type: 'string' },
+        },
+    },
+    handler: handleGetNew,
 };
 
 export const comicFiltersRoute: RouteOptions = {
@@ -38,5 +49,10 @@ export const comicChaptersRoute: RouteOptions = {
     handler: handleGetChapter,
 };
 
-const comicsRoutes = [comicSearchRoute, comicFiltersRoute, comicChaptersRoute];
+const comicsRoutes = [
+    comicSearchRoute,
+    comicFiltersRoute,
+    comicChaptersRoute,
+    comicNewRoute,
+];
 export default comicsRoutes;
