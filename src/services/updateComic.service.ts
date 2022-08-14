@@ -24,6 +24,12 @@ export async function insertNewComic(name: string) {
         if (pageData && pageData.length) {
             await Promise.allSettled(
                 pageData?.map(async (comic) => {
+                    const existComic = await Comic.findOne({
+                        name: comic?.name,
+                    });
+
+                    if (existComic) return;
+
                     await Comic.updateOne(
                         {
                             name: comic?.name,

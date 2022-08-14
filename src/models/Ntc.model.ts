@@ -2,10 +2,17 @@ import { AxiosRequestConfig } from 'axios';
 import { parse } from 'node-html-parser';
 import { Chapter, Genres_NT, Page_Image } from 'types';
 
+import { LhURL, OtkUrl } from '../configs';
 import { GENRES_NT } from '../constants';
 import Scraper from '../libs/Scraper';
+import lhModel from '../models/Lh.model';
+import OTKModel from '../models/Otk.model';
 import logEvents from '../utils/logEvents';
 import { normalizeString } from '../utils/stringHandler';
+import { uploadImage } from '../services/cloudinary.service';
+
+const Lh = lhModel.Instance(LhURL, 30000);
+const Otk = OTKModel.Instance(OtkUrl);
 
 export default class NtModel extends Scraper {
     private static instance: NtModel;
@@ -282,6 +289,154 @@ export default class NtModel extends Scraper {
             return pages;
         } catch (err) {
             return [] as Page_Image[];
+        }
+    }
+
+    public async getComicBySlug(comicSlug: string) {
+        try {
+            const { data } = await this.client.get(
+                `${this.baseUrl}/truyen-tranh/${comicSlug}`,
+            );
+            const document = parse(data);
+
+            const name = normalizeString(
+                String(
+                    document.querySelector('#item-detail > h1')?.textContent,
+                ),
+            );
+
+            const infoContainer = document.querySelectorAll(
+                '#item-detail > div.detail-info > div > div.col-xs-8.col-info > ul > li',
+            );
+
+            let status: string | null = '';
+            let author: string | null = '';
+            let genres: string[] | Genres_NT[] = [];
+            let otherName: string | null = '';
+
+            infoContainer.forEach((e) => {
+                const title = normalizeString(
+                    String(
+                        e
+                            .querySelector('p.name.col-xs-4')
+                            ?.textContent.toLowerCase(),
+                    ),
+                );
+
+                switch (title) {
+                    case 'tên khác':
+                        otherName = normalizeString(
+                            String(e.querySelector('h2')?.textContent),
+                        );
+
+                        break;
+                    case 'tác giả':
+                        author = normalizeString(
+                            String(e.querySelector('.col-xs-8')?.textContent),
+                        );
+
+                        break;
+                    case 'tình trạng':
+                        status = normalizeString(
+                            String(e.querySelector('.col-xs-8')?.textContent),
+                        );
+                        break;
+                    case 'thể loại':
+                        const rawGenre = e
+                            .querySelectorAll('.col-xs-8 a')
+                            .map((aTag) => normalizeString(String(aTag)));
+
+                        genres = rawGenre.reduce((result, rawElement) => {
+                            const check = GENRES_NT.find(
+                                (genreNt) =>
+                                    genreNt.label.toLowerCase().trim() ===
+                                    rawElement.toLowerCase().trim(),
+                            );
+
+                            if (check) {
+                                result.push(check);
+                            }
+
+                            return result;
+                        }, [] as Genres_NT[]);
+                        break;
+                }
+            });
+
+            const review = normalizeString(
+                String(
+                    document.querySelector(
+                        '#item-detail > div.detail-content > p',
+                    )?.textContent,
+                ),
+            );
+
+            const newChapter = normalizeString(
+                String(
+                    document.querySelector(
+                        '#nt_listchapter > nav > ul > li:nth-child(1) > div.col-xs-5.chapter > a',
+                    )?.textContent,
+                ),
+            );
+
+            let thumbnail = this.unshiftProtocol(
+                String(
+                    document
+                        .querySelector(
+                            '#item-detail > div.detail-info > div > div.col-xs-4.col-image > img',
+                        )
+                        ?.getAttribute('src'),
+                ),
+            );
+
+            thumbnail = await uploadImage(
+                String(thumbnail),
+                `slug ${comicSlug}`,
+            );
+
+            const updatedAt = normalizeString(
+                String(
+                    document.querySelector(
+                        '#nt_listchapter > nav > ul > li:nth-child(1) > div.col-xs-4.text-center.no-wrap.small',
+                    )?.textContent,
+                ),
+            );
+
+            const sourcesAvailable = [];
+
+            const LHRes = await Lh.search(name);
+            if (LHRes) {
+                sourcesAvailable.push({
+                    sourceName: 'LHM',
+                    sourceSlug: LHRes.url,
+                });
+            }
+
+            const OtkRes = await Otk.search(name);
+            if (OtkRes?.length && OtkRes[0]?.slug) {
+                sourcesAvailable.push({
+                    sourceName: 'OTK',
+                    sourceSlug:
+                        (process.env.OTK_SOURCE_URL as string) + OtkRes[0].slug,
+                });
+            }
+
+            return {
+                name,
+                status,
+                author,
+                genres,
+                otherName,
+                sourcesAvailable,
+                review,
+                newChapter,
+                thumbnail,
+                updatedAt,
+                slug: comicSlug,
+            };
+        } catch (err) {
+            logEvents('comics', `get ${comicSlug} failed`);
+            return null;
         }
     }
 }

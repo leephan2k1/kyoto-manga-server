@@ -162,11 +162,11 @@ export default function chaptersController() {
                     );
                 }
 
-                await Chapter.updateOne(
-                    {
-                        comicName: chapters.comicName,
-                    },
-                    chapters,
+                const doc = await Chapter.create(chapters);
+
+                await Comic.updateOne(
+                    { slug: comicSlug },
+                    { $set: { chapters: doc._id } },
                     { upsert: true },
                 );
 

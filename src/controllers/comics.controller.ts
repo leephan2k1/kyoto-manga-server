@@ -19,8 +19,45 @@ interface FiltersQuery {
     page: number;
 }
 
+interface ComicInfoParams {
+    comicSlug: string;
+}
+
 export default function comicsController() {
     return {
+        handleGetComicInfo: async function (
+            req: FastifyRequest,
+            res: FastifyReply,
+        ) {
+            const { comicSlug } = req.params as ComicInfoParams;
+
+            try {
+                const existComic = await Comic.findOne({ slug: comicSlug });
+
+                if (existComic)
+                    return res.status(200).send({
+                        message: 'ok',
+                        comic: existComic,
+                    });
+
+                const comic = await Nt.getComicBySlug(comicSlug);
+
+                if (!comic)
+                    return res.status(404).send({ message: 'not found' });
+
+                if (!existComic) {
+                    const result = await Comic.create(comic);
+
+                    return res.status(201).send({
+                        message: 'ok',
+                        comic: result,
+                    });
+                }
+            } catch (err) {
+                return res.status(404).send({ message: 'not found' });
+            }
+        },
+
         handleSearch: async function (req: FastifyRequest, res: FastifyReply) {
             const { q } = req.query as SearchQuery;
 
