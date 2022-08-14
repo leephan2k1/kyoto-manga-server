@@ -33,6 +33,14 @@ export const comicSchema = {
         type: String,
         require: true,
     },
+    chapters: {
+        type: Schema.Types.ObjectId,
+        ref: 'chapters',
+    },
+    description: {
+        type: Schema.Types.ObjectId,
+        ref: 'descriptions',
+    },
     thumbnail: {
         type: String,
         require: true,
