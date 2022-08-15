@@ -189,6 +189,15 @@ export default function chaptersController() {
                 const { chapterSlug, comicName, source, comicSlug } =
                     req.body as PagesChapterBody;
 
+                const existPages = await Page.findOne({ chapterSlug });
+                if (existPages) {
+                    return rep
+                        .status(200)
+                        .send({
+                            message: 'pages already exist in the database',
+                        });
+                }
+
                 const pages = await getPages(
                     chapterSlug,
                     source as Source_Type,
