@@ -1,6 +1,7 @@
 import { DoneFuncWithErrOrRes, FastifyInstance, RouteOptions } from 'fastify';
 import comicRoutes from './comic.routes';
 import chapterRoutes from './chapter.routes';
+import { proxyHandler } from '../controllers/proxy.controller';
 
 export default function routes(
     fastify: FastifyInstance,
@@ -14,6 +15,18 @@ export default function routes(
     chapterRoutes.forEach((route) => {
         fastify.route(route);
     });
+
+    fastify.route({
+        url: '/proxy',
+        method: 'GET',
+        schema: {
+            querystring: {
+                src: { type: 'string' },
+                url: { type: 'string' },
+            },
+        },
+        handler: proxyHandler,
+    } as RouteOptions);
 
     done();
 }
