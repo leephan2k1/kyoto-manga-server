@@ -12,7 +12,7 @@ const server = fastify();
 server.register(routes, { prefix: '/api/v2' });
 
 server.register(cors, {
-    origin: ['http://localhost:3000', 'https://kyotomanga.live/'],
+    origin: ['http://localhost:3000', 'https://kyotomanga.live'],
 });
 
 (async function () {
