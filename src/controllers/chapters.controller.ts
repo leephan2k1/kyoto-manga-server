@@ -20,6 +20,10 @@ interface ChapterParams {
     comicSlug: string;
 }
 
+interface ChaptersQuery {
+    options?: 'skip' | 'get';
+}
+
 interface PagesChapterBody {
     chapterSlug: string;
     source: string;
@@ -34,6 +38,7 @@ export default function chaptersController() {
             rep: FastifyReply,
         ) {
             const { comicSlug } = req.params as ChapterParams;
+            const { options } = req.query as ChaptersQuery;
 
             //lookup in database:
             const comic = await Comic.findOne({ slug: comicSlug });
@@ -178,6 +183,7 @@ export default function chaptersController() {
 
             return rep.status(200).send({
                 message: 'chapters are the latest',
+                chapters: options === 'get' ? chapters : undefined,
             });
         },
 
@@ -191,11 +197,9 @@ export default function chaptersController() {
 
                 const existPages = await Page.findOne({ chapterSlug });
                 if (existPages) {
-                    return rep
-                        .status(200)
-                        .send({
-                            message: 'pages already exist in the database',
-                        });
+                    return rep.status(200).send({
+                        message: 'pages already exist in the database',
+                    });
                 }
 
                 const pages = await getPages(

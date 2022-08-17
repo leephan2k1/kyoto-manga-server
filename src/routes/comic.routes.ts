@@ -35,6 +35,11 @@ export const comicFiltersRoute: RouteOptions = {
 export const comicChaptersRoute: RouteOptions = {
     url: '/comics/:comicSlug/chapters',
     method: 'GET',
+    schema: {
+        querystring: {
+            options: { type: 'string' },
+        },
+    },
     handler: handleGetChapter,
 };
 
