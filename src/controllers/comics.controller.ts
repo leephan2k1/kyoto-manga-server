@@ -23,6 +23,10 @@ interface ComicInfoParams {
     comicSlug: string;
 }
 
+interface QueryRandom {
+    limit: number;
+}
+
 export default function comicsController() {
     return {
         handleGetComicInfo: async function (
@@ -107,6 +111,29 @@ export default function comicsController() {
                 message: 'ok',
                 result,
             });
+        },
+
+        handleRandomComics: async function (
+            req: FastifyRequest,
+            res: FastifyReply,
+        ) {
+            try {
+                const { limit } = req.query as QueryRandom;
+
+                //@ts-ignore
+                const comics = await Comic.aggregate([
+                    { $sample: { size: limit } },
+                ]);
+
+                return res.status(200).send({
+                    message: 'ok',
+                    comics,
+                });
+            } catch (error) {
+                return res.status(400).send({
+                    message: error,
+                });
+            }
         },
     };
 }
