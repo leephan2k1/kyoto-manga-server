@@ -66,6 +66,8 @@ export async function updateTopAllView() {
             }),
         );
 
+        if (comics.length === 0) return;
+
         await RTComic.updateOne(
             {
                 type: 'all',
@@ -101,6 +103,8 @@ export async function updateTopMonthView() {
             }),
         );
 
+        if (comics.length === 0) return;
+
         await RTComic.updateOne(
             {
                 type: 'month',
@@ -134,6 +138,8 @@ export async function updateTopWeekView() {
             }),
         );
 
+        if (comics.length === 0) return;
+
         await RTComic.updateOne(
             {
                 type: 'week',
@@ -166,6 +172,8 @@ export async function updateTopDayView() {
                 }
             }),
         );
+
+        if (comics.length === 0) return;
 
         await RTComic.updateOne(
             {
