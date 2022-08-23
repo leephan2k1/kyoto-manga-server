@@ -1,8 +1,11 @@
-import { Nt } from '../models/Ntc.model';
-import Comic from '../models/Comic.model';
-import RTComic from '../models/RealTimeComic.model';
+import axios from 'axios';
+import { parse } from 'node-html-parser';
+import logEvents from '../utils/logEvents';
+import { NtURL } from '../configs';
 import ComicsCenter from '../models';
-
+import Comic from '../models/Comic.model';
+import { Nt } from '../models/Ntc.model';
+import RTComic from '../models/RealTimeComic.model';
 import { uploadImage } from './cloudinary.service';
 
 export async function insertNewComic(name: string) {
@@ -293,6 +296,72 @@ export async function updateThumbnail() {
             { upsert: true },
         );
     } catch (err) {}
+}
+
+export async function updateSeasonalComics() {
+    try {
+        const { data } = await axios.get(
+            'https://myanimelist.net/anime/season',
+        );
+
+        const document = parse(data);
+
+        const allTitles = document
+            .querySelectorAll(
+                '#content > div.js-categories-seasonal > div:nth-child(1) .h2_anime_title',
+            )
+            .map((e) => e.textContent.trim());
+
+        //@ts-ignore
+        const comics = [];
+
+        //update comics follow anime season
+        await Promise.allSettled(
+            allTitles.map(async (title) => {
+                const comic = await Comic.findOne({ name: title });
+
+                if (comic) {
+                    comics.push(comic);
+                } else {
+                    const { data } = await axios.get(
+                        `${NtURL}/tim-truyen?keyword=${title}`,
+                    );
+
+                    const document = parse(data);
+
+                    const comicName = document
+                        .querySelector(
+                            '#ctl00_divCenter > div.Module.Module-170 > div > div > div > div > figure > figcaption > h3 > a',
+                        )
+                        ?.textContent.trim();
+
+                    const comic = await Comic.findOne({
+                        name: comicName,
+                    });
+
+                    if (comic) {
+                        comics.push(comic);
+                    } else {
+                        //if comics miss (wrong keyword or vietnamese title)
+                        logEvents('season_comics', `update ${title} failed`);
+                    }
+                }
+            }),
+        );
+
+        if (comics.length) {
+            await RTComic.updateOne(
+                { type: 'season' },
+                //@ts-ignore
+                { type: 'season', comics },
+                { upsert: true },
+            );
+        }
+        // @ts-ignore
+        return comics;
+    } catch (error) {
+        return [];
+    }
 }
 
 const updateComics = [

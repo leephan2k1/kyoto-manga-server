@@ -1,5 +1,8 @@
 import cron, { ScheduledTask } from 'node-cron';
-import updateComics, { updateThumbnail } from './updateComic.service';
+import updateComics, {
+    updateThumbnail,
+    updateSeasonalComics,
+} from './updateComic.service';
 
 const tasks: ScheduledTask[] = [];
 
@@ -24,6 +27,17 @@ tasks.push(
         (async function () {
             try {
                 await updateThumbnail();
+            } catch (err) {}
+        })();
+    }),
+);
+
+tasks.push(
+    cron.schedule('0 0 1 */3 *', () => {
+        console.log('update seasonal comics every 3rd month');
+        (async function () {
+            try {
+                await updateSeasonalComics();
             } catch (err) {}
         })();
     }),
