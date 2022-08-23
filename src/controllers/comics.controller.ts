@@ -2,7 +2,11 @@ import { FastifyReply, FastifyRequest } from 'fastify';
 
 import Comic from '../models/Comic.model';
 import NtcModel from '../models/Ntc.model';
-import { insertNewComic } from '../services/updateComic.service';
+import RTComic from '../models/RealTimeComic.model';
+import {
+    insertNewComic,
+    updateSeasonalComics,
+} from '../services/updateComic.service';
 
 const Nt = NtcModel.Instance(process.env.NT_SOURCE_URL as string);
 
@@ -27,8 +31,82 @@ interface QueryRandom {
     limit: number;
 }
 
+interface BodyComicSeason {
+    titles: string[];
+}
+
 export default function comicsController() {
     return {
+        handleAddManuallyComicSeason: async function (
+            req: FastifyRequest,
+            res: FastifyReply,
+        ) {
+            try {
+                const { titles } = req.body as BodyComicSeason;
+
+                //@ts-ignore
+                const comics = [];
+
+                await Promise.allSettled(
+                    titles.map(async (title) => {
+                        const comic = await Comic.findOne({ name: title });
+                        if (comic) {
+                            comics.push(comic);
+                        } else {
+                            await insertNewComic(title);
+                            const comic = await Comic.findOne({ name: title });
+                            if (comic) comics.push(comic);
+                        }
+                    }),
+                );
+
+                if (comics.length) {
+                    await RTComic.updateOne(
+                        {
+                            type: 'season',
+                        },
+                        {
+                            $push: {
+                                //@ts-ignore
+                                comics: { $each: comics },
+                            },
+                        },
+                        { upsert: true },
+                    );
+                }
+
+                return res.status(201).send({
+                    message: 'ok',
+                    length: comics.length,
+                    //@ts-ignore
+                    comics,
+                });
+            } catch (error) {
+                return res.status(400).send({ message: error });
+            }
+        },
+
+        handleGetSeason: async function (
+            req: FastifyRequest,
+            res: FastifyReply,
+        ) {
+            try {
+                const comics = await updateSeasonalComics();
+
+                return res.status(200).send({
+                    message: 'ok',
+                    // @ts-ignore
+                    length: comics?.length,
+                    // @ts-ignore
+                    comics,
+                });
+            } catch (error) {
+                return res.status(400).send({
+                    message: error,
+                });
+            }
+        },
+
         handleGetComicInfo: async function (
             req: FastifyRequest,
             res: FastifyReply,

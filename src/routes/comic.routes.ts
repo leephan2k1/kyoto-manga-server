@@ -2,8 +2,14 @@ import { RouteOptions } from 'fastify';
 import comicsController from '../controllers/comics.controller';
 import chaptersController from '../controllers/chapters.controller';
 
-const { handleSearch, handleFilters, handleGetComicInfo, handleRandomComics } =
-    comicsController();
+const {
+    handleSearch,
+    handleGetSeason,
+    handleFilters,
+    handleGetComicInfo,
+    handleRandomComics,
+    handleAddManuallyComicSeason,
+} = comicsController();
 const { handleGetChapter } = chaptersController();
 
 export const comicSearchRoute: RouteOptions = {
@@ -15,6 +21,28 @@ export const comicSearchRoute: RouteOptions = {
         },
     },
     handler: handleSearch,
+};
+
+export const comicSeasonalRoute: RouteOptions = {
+    url: '/comics/season',
+    method: 'GET',
+    handler: handleGetSeason,
+};
+
+export const comicsAddSeasonalRoute: RouteOptions = {
+    url: '/comics/season',
+    method: 'POST',
+    schema: {
+        querystring: {
+            body: {
+                type: 'object',
+                properties: {
+                    titles: { type: 'array' },
+                },
+            },
+        },
+    },
+    handler: handleAddManuallyComicSeason,
 };
 
 export const comicRandomRoute: RouteOptions = {
@@ -65,6 +93,8 @@ const comicsRoutes = [
     comicSearchRoute,
     comicFiltersRoute,
     comicChaptersRoute,
+    comicSeasonalRoute,
+    comicsAddSeasonalRoute,
     comicRandomRoute,
     comicInfo,
 ];
