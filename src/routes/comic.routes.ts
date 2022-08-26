@@ -9,8 +9,20 @@ const {
     handleGetComicInfo,
     handleRandomComics,
     handleAddManuallyComicSeason,
+    handleCheckUptime,
 } = comicsController();
 const { handleGetChapter } = chaptersController();
+
+export const comicCheckUptimeRoute: RouteOptions = {
+    url: '/comics/ping',
+    method: 'GET',
+    schema: {
+        querystring: {
+            source: { type: 'string' },
+        },
+    },
+    handler: handleCheckUptime,
+};
 
 export const comicSearchRoute: RouteOptions = {
     url: '/comics/search',
@@ -92,6 +104,7 @@ export const comicInfo: RouteOptions = {
 const comicsRoutes = [
     comicSearchRoute,
     comicFiltersRoute,
+    comicCheckUptimeRoute,
     comicChaptersRoute,
     comicSeasonalRoute,
     comicsAddSeasonalRoute,

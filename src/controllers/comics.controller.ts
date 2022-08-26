@@ -1,7 +1,9 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
-
+import { LhURL, OtkUrl } from '../configs';
 import Comic from '../models/Comic.model';
+import lhModel from '../models/Lh.model';
 import NtcModel from '../models/Ntc.model';
+import OTKModel from '../models/Otk.model';
 import RTComic from '../models/RealTimeComic.model';
 import {
     insertNewComic,
@@ -9,6 +11,8 @@ import {
 } from '../services/updateComic.service';
 
 const Nt = NtcModel.Instance(process.env.NT_SOURCE_URL as string);
+const Lh = lhModel.Instance(LhURL, 30000);
+const Otk = OTKModel.Instance(OtkUrl);
 
 interface SearchQuery {
     q: string;
@@ -35,8 +39,119 @@ interface BodyComicSeason {
     titles: string[];
 }
 
+interface ComicPingPongUptime {
+    source: string;
+}
+
 export default function comicsController() {
     return {
+        handleCheckUptime: async function (
+            req: FastifyRequest,
+            res: FastifyReply,
+        ) {
+            const { source } = req.query as ComicPingPongUptime;
+
+            try {
+                switch (source) {
+                    case 'NTC':
+                        const [
+                            checkNTSearch,
+                            checkNTChapters,
+                            checkNTPagesOfChap,
+                        ] = await Promise.all([
+                            Nt.searchQuery('Chú mèo kỳ diệu Kyuu-chan').then(
+                                (result) => result,
+                            ),
+                            Nt.getChapters(
+                                'chu-meo-ky-dieu-kyuu-chan-19558',
+                            ).then((result) => result),
+                            Nt.getChapterPages(
+                                '/truyen-tranh/chu-meo-ky-dieu-kyuu-chan/chap-645/895104',
+                            ).then((result) => result),
+                        ]);
+
+                        if (
+                            checkNTSearch.mangaData.length === 0 ||
+                            checkNTChapters.length === 0 ||
+                            checkNTPagesOfChap.length === 0
+                        ) {
+                            return res.status(400).send({
+                                pong: false,
+                            });
+                        }
+                        break;
+
+                    case 'LHM':
+                        const [
+                            checkLHSearch,
+                            checkLHComic,
+                            checkLHPagesOfChapter,
+                        ] = await Promise.all([
+                            Lh.search('Chú mèo kỳ diệu Kyuu-chan').then(
+                                (result) => result,
+                            ),
+                            Lh.getComic('chu-meo-ky-dieu-kyuu-chan').then(
+                                (result) => result,
+                            ),
+                            Lh.getChapterPages(
+                                '/truyen-tranh/chu-meo-ky-dieu-kyuu-chan/187-8',
+                            ),
+                        ]);
+
+                        if (
+                            !checkLHSearch ||
+                            !checkLHComic ||
+                            checkLHPagesOfChapter.length === 0
+                        ) {
+                            return res.status(400).send({
+                                pong: false,
+                            });
+                        }
+                        break;
+
+                    case 'OTK':
+                        const [
+                            checkOtkSearch,
+                            checkOtkComic,
+                            checkOtkPagesOfChapter,
+                        ] = await Promise.all([
+                            Otk.search('Chú mèo kỳ diệu Kyuu-chan').then(
+                                (result) => result,
+                            ),
+                            Otk.getChapters(
+                                'https://otakusan.net/manga-detail/31105/chu-meo-ky-dieu-kyuu-chan',
+                            ).then((result) => result),
+                            Otk.getChapterPages(
+                                '/chapter/1601027/chu-meo-ky-dieu-kyuu-chan-chap-647',
+                            ),
+                        ]);
+
+                        if (
+                            !checkOtkSearch ||
+                            checkOtkComic.length === 0 ||
+                            checkOtkPagesOfChapter.length === 0
+                        ) {
+                            return res.status(400).send({
+                                pong: false,
+                            });
+                        }
+
+                        break;
+
+                    default:
+                        return res.status(400).send({ ping: false });
+                }
+
+                return res.status(200).send({
+                    pong: true,
+                });
+            } catch (err) {
+                res.status(400).send({
+                    message: err,
+                });
+            }
+        },
+
         handleAddManuallyComicSeason: async function (
             req: FastifyRequest,
             res: FastifyReply,
