@@ -26,7 +26,7 @@ export const mongoDbRemoteClient = mongoose.createConnection(mongodbRemoteURI, {
 });
 
 cloudinary.config({
-    cloud_name: 'dsoxko2mu',
+    cloud_name: 'dmncglvra',
     api_key: cloudinaryApiKey,
     api_secret: cloudinarySecretKey,
     secure: true,

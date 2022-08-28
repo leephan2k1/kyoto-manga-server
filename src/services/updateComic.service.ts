@@ -6,7 +6,6 @@ import ComicsCenter from '../models';
 import Comic from '../models/Comic.model';
 import { Nt } from '../models/Ntc.model';
 import RTComic from '../models/RealTimeComic.model';
-import { uploadImage } from './cloudinary.service';
 
 export async function insertNewComic(name: string) {
     try {
@@ -188,113 +187,6 @@ export async function updateTopDayView() {
         );
 
         console.log(`saved top day list successfully`);
-    } catch (err) {}
-}
-
-export async function updateThumbnail() {
-    try {
-        const result = await Comic.find({
-            thumbnail: {
-                $not: {
-                    $regex: 'res.cloudinary.com',
-                    $options: 'i',
-                },
-            },
-        });
-
-        const topAll = await RTComic.findOne({ type: 'all' });
-        const topMonth = await RTComic.findOne({ type: 'month' });
-        const topWeek = await RTComic.findOne({ type: 'week' });
-        const topDay = await RTComic.findOne({ type: 'day' });
-
-        const comicsTopAll = topAll?.comics;
-        const comicsTopMonth = topMonth?.comics;
-        const comicsTopWeek = topWeek?.comics;
-        const comicsTopDay = topDay?.comics;
-
-        await Promise.allSettled(
-            result.map(async (comic) => {
-                const cloudinaryThumbnail = await uploadImage(
-                    String(comic?.thumbnail),
-                    String(comic?.name),
-                );
-
-                await Comic.updateOne(
-                    { name: comic.name },
-                    { $set: { thumbnail: cloudinaryThumbnail } },
-                    { upsert: true },
-                );
-            }),
-        );
-
-        if (comicsTopAll?.length)
-            await Promise.allSettled(
-                comicsTopAll?.map(async (comic) => {
-                    const cloudinaryThumbnail = await uploadImage(
-                        String(comic?.thumbnail),
-                        String(comic?.name),
-                    );
-
-                    comic.thumbnail = cloudinaryThumbnail;
-                }),
-            );
-
-        if (comicsTopMonth?.length)
-            await Promise.allSettled(
-                comicsTopMonth?.map(async (comic) => {
-                    const cloudinaryThumbnail = await uploadImage(
-                        String(comic?.thumbnail),
-                        String(comic?.name),
-                    );
-
-                    comic.thumbnail = cloudinaryThumbnail;
-                }),
-            );
-
-        if (comicsTopWeek?.length)
-            await Promise.allSettled(
-                comicsTopWeek?.map(async (comic) => {
-                    const cloudinaryThumbnail = await uploadImage(
-                        String(comic?.thumbnail),
-                        String(comic?.name),
-                    );
-
-                    comic.thumbnail = cloudinaryThumbnail;
-                }),
-            );
-
-        if (comicsTopDay?.length)
-            await Promise.allSettled(
-                comicsTopDay?.map(async (comic) => {
-                    const cloudinaryThumbnail = await uploadImage(
-                        String(comic?.thumbnail),
-                        String(comic?.name),
-                    );
-
-                    comic.thumbnail = cloudinaryThumbnail;
-                }),
-            );
-
-        await RTComic.updateOne(
-            { type: 'all' },
-            { $set: { comics: comicsTopAll } },
-            { upsert: true },
-        );
-        await RTComic.updateOne(
-            { type: 'month' },
-            { $set: { comics: comicsTopMonth } },
-            { upsert: true },
-        );
-        await RTComic.updateOne(
-            { type: 'week' },
-            { $set: { comics: comicsTopWeek } },
-            { upsert: true },
-        );
-        await RTComic.updateOne(
-            { type: 'day' },
-            { $set: { comics: comicsTopDay } },
-            { upsert: true },
-        );
     } catch (err) {}
 }
 
