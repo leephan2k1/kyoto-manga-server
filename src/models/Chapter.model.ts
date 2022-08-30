@@ -3,8 +3,8 @@ import { mongoDbRemoteClient } from '../configs';
 const { Schema } = mongoose;
 
 const ChapterSchema = new Schema({
-    comicName: { type: String, index: true },
-    comicSlug: { type: String, index: true, require: true },
+    comicName: { type: String, index: true, unique: true },
+    comicSlug: { type: String, index: true, require: true, unique: true },
     source: { type: String },
     createdAt: { type: Date, default: Date.now },
     chapters_list: [

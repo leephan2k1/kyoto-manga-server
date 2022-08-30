@@ -49,6 +49,7 @@ export const comicSchema = {
         type: String,
         require: true,
         index: true,
+        unique: true,
     },
     updatedAt: {
         type: String,
@@ -58,6 +59,7 @@ export const comicSchema = {
         type: String,
         require: true,
         index: true,
+        unique: true,
     },
     sourcesAvailable: [
         {

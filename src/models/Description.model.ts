@@ -4,8 +4,8 @@ const { Schema } = mongoose;
 
 const Description = new Schema({
     mal_id: { type: Number, require: true },
-    name: { type: String, require: true, index: true },
-    slug: { type: String, require: true, index: true },
+    name: { type: String, require: true, index: true, unique: true },
+    slug: { type: String, require: true, index: true, unique: true },
     createdAt: { type: Date },
     cover: { type: String, require: true },
     score: { type: String },
