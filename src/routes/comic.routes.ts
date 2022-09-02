@@ -50,7 +50,7 @@ export const comicRecommendedVoteRoute: RouteOptions = {
     method: 'GET',
     schema: {
         querystring: {
-            limit: { type: 'number' },
+            limit: { type: 'number', default: 10 },
             sort: { type: 'number', default: -1 },
         },
     },

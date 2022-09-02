@@ -89,8 +89,8 @@ export default function comicsController() {
                             size: { $sum: 1 },
                         },
                     },
-                    { $sort: { size: -1 } },
-                ]);
+                    { $sort: { size: sort } },
+                ]).limit(limit);
 
                 return res.status(200).send({
                     comics,
