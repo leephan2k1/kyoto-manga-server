@@ -51,6 +51,7 @@ export const comicSchema = {
         index: true,
         unique: true,
     },
+    votes: [{ type: Schema.Types.ObjectId }],
     updatedAt: {
         type: String,
         require: true,

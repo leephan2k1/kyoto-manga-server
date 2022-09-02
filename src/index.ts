@@ -4,12 +4,15 @@ import routes from './routes';
 import dotenv from 'dotenv';
 import tasks from './services/cron.service';
 import cors from '@fastify/cors';
+import { voteSchema } from './schema/VoteSchema';
 dotenv.config();
 
 const server = fastify();
 
 //@ts-ignore
 server.register(routes, { prefix: '/api/v2' });
+
+server.addSchema(voteSchema);
 
 server.register(cors, {
     origin: [

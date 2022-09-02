@@ -9,6 +9,7 @@ import {
     insertNewComic,
     updateSeasonalComics,
 } from '../services/updateComic.service';
+import User from '../models/User.model';
 
 const Nt = NtcModel.Instance(process.env.NT_SOURCE_URL as string);
 const Lh = lhModel.Instance(LhURL, 30000);
@@ -43,8 +44,126 @@ interface ComicPingPongUptime {
     source: string;
 }
 
+interface VoteRouteBody {
+    userId: string;
+    comicName: string;
+    comicSlug: string;
+}
+
+interface GetVoteQuery {
+    limit: number;
+    sort: 1 | -1;
+}
+
 export default function comicsController() {
     return {
+        handleGetRecommended: async function (
+            req: FastifyRequest,
+            res: FastifyReply,
+        ) {
+            try {
+                const { limit, sort } = req.query as GetVoteQuery;
+
+                //this approach is taken from https://stackoverflow.com/questions/9040161/mongo-order-by-length-of-array
+                const comics = await Comic.aggregate([
+                    { $unwind: '$votes' },
+                    {
+                        $group: {
+                            _id: {
+                                _id: '$_id',
+                                status: '$status',
+                                author: '$author',
+                                genres: '$genres',
+                                otherName: '$otherName',
+                                review: '$review',
+                                newChapter: '$newChapter',
+                                thumbnail: '$thumbnail',
+                                name: '$name',
+                                updatedAt: '$updatedAt',
+                                slug: '$slug',
+                                sourcesAvailable: '$sourcesAvailable',
+                                __v: '$__v',
+                                chapters: '$chapters',
+                            },
+                            votes: { $push: '$votes' },
+                            size: { $sum: 1 },
+                        },
+                    },
+                    { $sort: { size: -1 } },
+                ]);
+
+                return res.status(200).send({
+                    comics,
+                });
+            } catch (error) {
+                console.log('handleUpVote:: ', error);
+
+                res.status(500).send({ message: 'Internal server error' });
+            }
+        },
+        handleUpVote: async function (req: FastifyRequest, res: FastifyReply) {
+            try {
+                const { comicName, userId } = req.body as VoteRouteBody;
+
+                const existUser = await User.findById(userId);
+                if (!existUser) {
+                    return res.status(403).send({ message: 'Forbidden' });
+                }
+
+                const comic = await Comic.findOne({ name: comicName });
+                if (!comic) {
+                    return res.status(404).send({ message: 'Comic not found' });
+                }
+
+                await Comic.updateOne(
+                    { name: comicName },
+                    { $addToSet: { votes: userId } },
+                );
+
+                return res.status(201).send({
+                    success: true,
+                });
+            } catch (error) {
+                console.log('handleUpVote:: ', error);
+                res.status(500).send({ message: 'Internal server error' });
+            }
+        },
+
+        handleDownVote: async function (
+            req: FastifyRequest,
+            res: FastifyReply,
+        ) {
+            try {
+                const { comicName, userId } = req.body as VoteRouteBody;
+
+                const existUser = await User.findById(userId);
+                if (!existUser) {
+                    return res.status(403).send({ message: 'Forbidden' });
+                }
+
+                const comic = await Comic.findOne({ name: comicName });
+                if (!comic) {
+                    return res.status(404).send({ message: 'Comic not found' });
+                }
+
+                await Comic.updateOne(
+                    { name: comicName },
+                    {
+                        $pull: {
+                            votes: { $in: [userId] },
+                        },
+                    },
+                );
+
+                return res.status(200).send({
+                    success: true,
+                });
+            } catch (error) {
+                console.log('handleDownVote:: ', error);
+                res.status(400).send({ message: 'Bad request' });
+            }
+        },
+
         handleCheckUptime: async function (
             req: FastifyRequest,
             res: FastifyReply,

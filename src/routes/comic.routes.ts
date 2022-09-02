@@ -10,6 +10,9 @@ const {
     handleRandomComics,
     handleAddManuallyComicSeason,
     handleCheckUptime,
+    handleUpVote,
+    handleDownVote,
+    handleGetRecommended,
 } = comicsController();
 const { handleGetChapter } = chaptersController();
 
@@ -22,6 +25,36 @@ export const comicCheckUptimeRoute: RouteOptions = {
         },
     },
     handler: handleCheckUptime,
+};
+
+export const comicUpVoteRoute: RouteOptions = {
+    url: '/comics/upvote',
+    method: 'POST',
+    schema: {
+        body: { $ref: 'voteSchema#' },
+    },
+    handler: handleUpVote,
+};
+
+export const comicUpDownRoute: RouteOptions = {
+    url: '/comics/downvote',
+    method: 'DELETE',
+    schema: {
+        body: { $ref: 'voteSchema#' },
+    },
+    handler: handleDownVote,
+};
+
+export const comicRecommendedVoteRoute: RouteOptions = {
+    url: '/comics/recommended',
+    method: 'GET',
+    schema: {
+        querystring: {
+            limit: { type: 'number' },
+            sort: { type: 'number', default: -1 },
+        },
+    },
+    handler: handleGetRecommended,
 };
 
 export const comicSearchRoute: RouteOptions = {
@@ -107,6 +140,9 @@ const comicsRoutes = [
     comicCheckUptimeRoute,
     comicChaptersRoute,
     comicSeasonalRoute,
+    comicUpVoteRoute,
+    comicUpDownRoute,
+    comicRecommendedVoteRoute,
     comicsAddSeasonalRoute,
     comicRandomRoute,
     comicInfo,
