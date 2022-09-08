@@ -2,13 +2,17 @@ import mongoose from 'mongoose';
 import { mongoDbRemoteClient } from '../configs';
 const { Schema } = mongoose;
 
-const ChapterSchema = new Schema(
+const PageSchema = new Schema(
     {
         chapterSlug: {
             type: String,
             unique: true,
             require: true,
             index: true,
+        },
+        chapter: {
+            type: Schema.Types.ObjectId,
+            ref: 'chapters',
         },
         pages: [
             {
@@ -43,4 +47,4 @@ const ChapterSchema = new Schema(
     },
 );
 
-export default mongoDbRemoteClient.model('pages', ChapterSchema);
+export default mongoDbRemoteClient.model('pages', PageSchema);

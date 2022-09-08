@@ -207,7 +207,9 @@ export default function chaptersController() {
                     source as Source_Type,
                 );
 
-                if (pages && pages.length) {
+                const chapter = await Chapter.findOne({ comicName });
+
+                if (pages && pages.length && chapter) {
                     const pagesObj: Chapter_Pages = {
                         chapterSlug,
                         comicName,
@@ -216,7 +218,7 @@ export default function chaptersController() {
                         comicSlug,
                     };
 
-                    await Page.create(pagesObj);
+                    await Page.create({ ...pagesObj, chapter: chapter._id });
 
                     return rep.status(201).send({
                         message: `save pages ${chapterSlug} successfully`,
