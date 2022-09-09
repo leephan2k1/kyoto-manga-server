@@ -7,7 +7,7 @@ import cors from '@fastify/cors';
 import { voteSchema } from './schema/VoteSchema';
 dotenv.config();
 
-const server = fastify();
+const server = fastify({ logger: true });
 
 //@ts-ignore
 server.register(routes, { prefix: '/api/v2' });

@@ -218,7 +218,8 @@ export default function chaptersController() {
                     pages.length &&
                     metaInfo?.chapterId &&
                     metaInfo?.comicName &&
-                    metaInfo?.comicSlug
+                    metaInfo?.comicSlug &&
+                    metaInfo?.chapter
                 ) {
                     const pagesObj: Chapter_Pages = {
                         chapterSlug,
@@ -236,6 +237,7 @@ export default function chaptersController() {
                     return rep.status(201).send({
                         message: `save pages ${chapterSlug} successfully`,
                         pages: pagesSaved,
+                        chapter: metaInfo?.chapter,
                     });
                 }
 
@@ -243,6 +245,8 @@ export default function chaptersController() {
                     message: 'not found',
                 });
             } catch (err) {
+                console.log('ERROR: ', err);
+
                 return rep.status(400).send({
                     message: 'error',
                 });

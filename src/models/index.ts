@@ -87,43 +87,76 @@ export default function ComicsCenter() {
                         const title = await Nt.getMetaInfoFromPages(
                             chapterSlug,
                         );
-                        const comicNTC = await ChapterModal.findOne({
+                        let chapterNTC;
+
+                        chapterNTC = await ChapterModal.findOne({
                             comicName: { $regex: title, $options: 'i' },
                         });
 
-                        if (comicNTC)
+                        if (!chapterNTC) {
+                            chapterNTC = await ChapterModal.findOne({
+                                comicName: title,
+                            });
+                        }
+
+                        if (chapterNTC)
                             return {
-                                chapterId: comicNTC?._id,
-                                comicSlug: comicNTC?.comicSlug,
-                                comicName: comicNTC?.comicName,
+                                chapter: chapterNTC,
+                                chapterId: chapterNTC?._id,
+                                comicSlug: chapterNTC?.comicSlug,
+                                comicName: chapterNTC?.comicName,
                             };
+                        break;
                     case 'LHM':
                         const titleLHM = await Lh.getMetaInfoFromPages(
                             chapterSlug,
                         );
-                        const comicRes = await ChapterModal.findOne({
+
+                        let chapterLHM;
+
+                        chapterLHM = await ChapterModal.findOne({
                             comicName: { $regex: titleLHM, $options: 'i' },
                         });
-                        if (comicRes)
+
+                        if (!chapterLHM) {
+                            chapterLHM = await ChapterModal.findOne({
+                                comicName: titleLHM,
+                            });
+                        }
+
+                        if (chapterLHM)
                             return {
-                                chapterId: comicRes?._id,
-                                comicSlug: comicRes?.comicSlug,
-                                comicName: comicRes?.comicName,
+                                chapter: chapterLHM,
+                                chapterId: chapterLHM?._id,
+                                comicSlug: chapterLHM?.comicSlug,
+                                comicName: chapterLHM?.comicName,
                             };
+                        break;
+
                     case 'OTK':
                         const titleOTK = await Otk.getMetaInfoFromPages(
                             chapterSlug,
                         );
-                        const comic = await ChapterModal.findOne({
+                        let chapterOTK;
+
+                        chapterOTK = await ChapterModal.findOne({
                             comicName: { $regex: titleOTK, $options: 'i' },
                         });
 
-                        if (comic)
+                        if (!chapterOTK) {
+                            chapterOTK = await ChapterModal.findOne({
+                                comicName: titleOTK,
+                            });
+                        }
+
+                        if (chapterOTK)
                             return {
-                                chapterId: comic?._id,
-                                comicSlug: comic?.comicSlug,
-                                comicName: comic?.comicName,
+                                chapter: chapterOTK,
+                                chapterId: chapterOTK?._id,
+                                comicSlug: chapterOTK?.comicSlug,
+                                comicName: chapterOTK?.comicName,
                             };
+                        break;
                 }
             } catch (err) {
                 console.log(err);
