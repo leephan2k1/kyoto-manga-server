@@ -14,7 +14,7 @@ const Nt = NtcModel.Instance(NtURL);
 const Lh = lhModel.Instance(LhURL, 30000);
 const Otk = OTKModel.Instance(OtkUrl);
 
-const { getChapter, getPages } = ComicsCenter();
+const { getChapter, getPages, getMetaInfo } = ComicsCenter();
 
 interface ChapterParams {
     comicSlug: string;
@@ -192,43 +192,61 @@ export default function chaptersController() {
             rep: FastifyReply,
         ) {
             try {
-                const { chapterSlug, comicName, source, comicSlug } =
-                    req.body as PagesChapterBody;
+                const { chapterSlug, source } = req.body as PagesChapterBody;
 
-                const existPages = await Page.findOne({ chapterSlug });
-                if (existPages) {
-                    return rep.status(200).send({
-                        message: 'pages already exist in the database',
-                    });
-                }
+                const metaInfo = await getMetaInfo(
+                    chapterSlug,
+                    source as Source_Type,
+                );
+
+                // const existPages = await Page.findOne({ chapterSlug });
+                // if (existPages) {
+                //     return rep.status(200).send({
+                //         message: 'pages already exist in the database',
+                //     });
+                // }
 
                 const pages = await getPages(
                     chapterSlug,
                     source as Source_Type,
                 );
 
-                const chapter = await Chapter.findOne({ comicName });
+                // const chapter = await Chapter.findOne({ comicName });
 
-                if (pages && pages.length && chapter) {
+                if (
+                    pages &&
+                    pages.length &&
+                    metaInfo?.chapterId &&
+                    metaInfo?.comicName &&
+                    metaInfo?.comicSlug
+                ) {
                     const pagesObj: Chapter_Pages = {
                         chapterSlug,
-                        comicName,
+                        comicName: metaInfo?.comicName,
                         source,
                         pages,
-                        comicSlug,
+                        comicSlug: metaInfo?.comicSlug,
                     };
 
-                    await Page.create({ ...pagesObj, chapter: chapter._id });
+                    const pagesSaved = await Page.create({
+                        ...pagesObj,
+                        chapter: metaInfo?.chapterId,
+                    });
 
                     return rep.status(201).send({
                         message: `save pages ${chapterSlug} successfully`,
+                        pages: pagesSaved,
                     });
                 }
 
                 return rep.status(404).send({
                     message: 'not found',
                 });
-            } catch (err) {}
+            } catch (err) {
+                return rep.status(400).send({
+                    message: 'error',
+                });
+            }
         },
     };
 }

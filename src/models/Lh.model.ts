@@ -264,4 +264,37 @@ export default class LHModal extends Scraper {
             return [] as Page_Image[];
         }
     }
+
+    public async getMetaInfoFromPages(chapterSlug: string) {
+        try {
+            const { data } = await this.client.get(
+                `${this.baseUrl}${chapterSlug}`,
+            );
+
+            const doc = parse(data);
+
+            const aTag = doc.querySelector(
+                '#app > main > div.container > div.row.custom > ul > li:nth-child(3) > a',
+            );
+
+            const { data: details } = await this.client.get(
+                String(aTag?.getAttribute('href')),
+            );
+
+            const document = parse(details);
+
+            const title = normalizeString(
+                String(
+                    document.querySelector(
+                        '#app > main > div.container > div > div:nth-child(1) > div > div > section > main > div.top-part > div > div.col-12.col-md-8 > div.series-name-group > span > a',
+                    )?.textContent,
+                ),
+            );
+
+            return title;
+        } catch (error) {
+            console.log('ERROR: ', error);
+            return null;
+        }
+    }
 }

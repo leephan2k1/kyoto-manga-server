@@ -1,6 +1,7 @@
 import { Comic, Source_Type } from 'types';
 
 import { LhURL, NtURL, OtkUrl } from '../configs';
+import ChapterModal from './Chapter.model';
 import lhModel from '../models/Lh.model';
 import NtcModel from '../models/Ntc.model';
 import OTKModel from '../models/Otk.model';
@@ -76,6 +77,56 @@ export default function ComicsCenter() {
             } catch (err) {
                 console.log(`error get pages ${err}`);
                 return [];
+            }
+        },
+
+        getMetaInfo: async (chapterSlug: string, source: Source_Type) => {
+            try {
+                switch (source) {
+                    case 'NTC':
+                        const title = await Nt.getMetaInfoFromPages(
+                            chapterSlug,
+                        );
+                        const comicNTC = await ChapterModal.findOne({
+                            comicName: { $regex: title, $options: 'i' },
+                        });
+
+                        if (comicNTC)
+                            return {
+                                chapterId: comicNTC?._id,
+                                comicSlug: comicNTC?.comicSlug,
+                                comicName: comicNTC?.comicName,
+                            };
+                    case 'LHM':
+                        const titleLHM = await Lh.getMetaInfoFromPages(
+                            chapterSlug,
+                        );
+                        const comicRes = await ChapterModal.findOne({
+                            comicName: { $regex: titleLHM, $options: 'i' },
+                        });
+                        if (comicRes)
+                            return {
+                                chapterId: comicRes?._id,
+                                comicSlug: comicRes?.comicSlug,
+                                comicName: comicRes?.comicName,
+                            };
+                    case 'OTK':
+                        const titleOTK = await Otk.getMetaInfoFromPages(
+                            chapterSlug,
+                        );
+                        const comic = await ChapterModal.findOne({
+                            comicName: { $regex: titleOTK, $options: 'i' },
+                        });
+
+                        if (comic)
+                            return {
+                                chapterId: comic?._id,
+                                comicSlug: comic?.comicSlug,
+                                comicName: comic?.comicName,
+                            };
+                }
+            } catch (err) {
+                console.log(err);
             }
         },
     };

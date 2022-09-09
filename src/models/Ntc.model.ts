@@ -1,7 +1,8 @@
 import { AxiosRequestConfig } from 'axios';
 import { parse } from 'node-html-parser';
 import { Chapter, Genres_NT, Page_Image } from 'types';
-
+//@ts-ignore
+import URLStateMachine from 'url-state-machine';
 import { LhURL, OtkUrl } from '../configs';
 import { GENRES_NT } from '../constants';
 import Scraper from '../libs/Scraper';
@@ -436,6 +437,27 @@ export default class NtModel extends Scraper {
             };
         } catch (err) {
             logEvents('comics', `get ${comicSlug} failed`);
+            return null;
+        }
+    }
+
+    public async getMetaInfoFromPages(chapterSlug: string) {
+        try {
+            const { data } = await this.client.get(
+                `${this.baseUrl}/${chapterSlug}`,
+            );
+
+            const document = parse(data);
+
+            const aTag = document.querySelector(
+                '#ctl00_divCenter > div > div:nth-child(1) > div.top > h1 > a',
+            );
+
+            const title = normalizeString(String(aTag?.textContent));
+
+            return title;
+        } catch (error) {
+            console.log('ERROR: ', error);
             return null;
         }
     }

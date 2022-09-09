@@ -150,4 +150,25 @@ export default class OTKModel extends Scraper {
             return [] as Page_Image[];
         }
     }
+
+    public async getMetaInfoFromPages(chapterSlug: string) {
+        try {
+            const { data } = await this.client.get(
+                `${this.baseUrl}${chapterSlug}`,
+            );
+
+            const doc = parse(data);
+
+            const aTag = doc.querySelector(
+                '#chap_view > ul > li:nth-child(3) > a > span',
+            );
+
+            const title = normalizeString(String(aTag?.textContent));
+
+            return title;
+        } catch (error) {
+            console.log('ERROR: ', error);
+            return null;
+        }
+    }
 }
