@@ -10,6 +10,7 @@ const cloudinaryApiKey = process.env.CLOUDINARY_API_KEY as string;
 const cloudinarySecretKey = process.env.CLOUDINARY_SECRET_KEY as string;
 
 export const NtURL = process.env.NT_SOURCE_URL as string;
+export const NtFbURL = process.env.NT_SOURCE_FALLBACK_URL as string;
 export const LhURL = process.env.LH_SOURCE_URL as string;
 export const OtkUrl = process.env.OTK_SOURCE_URL as string;
 

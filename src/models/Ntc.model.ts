@@ -1,16 +1,16 @@
-import { AxiosRequestConfig } from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 import { parse } from 'node-html-parser';
 import { Chapter, Genres_NT, Page_Image } from 'types';
+import puppeteer from 'puppeteer';
 //@ts-ignore
-import URLStateMachine from 'url-state-machine';
-import { LhURL, OtkUrl } from '../configs';
+import { LhURL, NtFbURL, OtkUrl } from '../configs';
 import { GENRES_NT } from '../constants';
 import Scraper from '../libs/Scraper';
 import lhModel from '../models/Lh.model';
 import OTKModel from '../models/Otk.model';
+import { uploadImage } from '../services/cloudinary.service';
 import logEvents from '../utils/logEvents';
 import { normalizeString } from '../utils/stringHandler';
-import { uploadImage } from '../services/cloudinary.service';
 
 const Lh = lhModel.Instance(LhURL, 30000);
 const Otk = OTKModel.Instance(OtkUrl);
@@ -250,6 +250,38 @@ export default class NtModel extends Scraper {
         }
     }
 
+    private async parseChapterPages(document: HTMLElement) {
+        const pagesRaw = document.querySelectorAll(
+            '.reading-detail .page-chapter',
+        );
+
+        const pages = [...pagesRaw].map((page) => {
+            const id = String(
+                page.querySelector('img')?.getAttribute('data-index'),
+            );
+
+            const source = page
+                .querySelector('img')
+                ?.getAttribute('data-original');
+
+            const srcCDN = page.querySelector('img')?.getAttribute('data-cdn');
+
+            const alternativeSrc = page
+                .querySelector('img')
+                ?.getAttribute('src');
+
+            const imgSrc = super.unshiftProtocol(String(source));
+
+            const imgSrcCDN = super.unshiftProtocol(
+                String(srcCDN ? srcCDN : alternativeSrc),
+            );
+
+            return { id, src: imgSrc, fallbackSrc: imgSrcCDN };
+        });
+
+        return pages;
+    }
+
     public async getChapterPages(chapterSlug: string): Promise<Page_Image[]> {
         try {
             const { data } = await this.client.get(
@@ -257,39 +289,88 @@ export default class NtModel extends Scraper {
             );
             const document = parse(data);
 
-            const pagesRaw = document.querySelectorAll(
-                '.reading-detail .page-chapter',
-            );
+            // @ts-ignore
+            const pages = await this.parseChapterPages(document);
 
-            const pages = [...pagesRaw].map((page) => {
-                const id = String(
-                    page.querySelector('img')?.getAttribute('data-index'),
-                );
-
-                const source = page
-                    .querySelector('img')
-                    ?.getAttribute('data-original');
-
-                const srcCDN = page
-                    .querySelector('img')
-                    ?.getAttribute('data-cdn');
-
-                const alternativeSrc = page
-                    .querySelector('img')
-                    ?.getAttribute('src');
-
-                const imgSrc = super.unshiftProtocol(String(source));
-
-                const imgSrcCDN = super.unshiftProtocol(
-                    String(srcCDN ? srcCDN : alternativeSrc),
-                );
-
-                return { id, src: imgSrc, fallbackSrc: imgSrcCDN };
-            });
+            if (!pages.length) throw new Error();
 
             return pages;
         } catch (err) {
-            return [] as Page_Image[];
+            try {
+                const { data } = await axios.get(`${NtFbURL}${chapterSlug}`);
+
+                const document = parse(data);
+                // @ts-ignore
+                const pages = await this.parseChapterPages(document);
+
+                if (!pages.length) throw new Error();
+
+                return pages;
+            } catch (error) {
+                const browser = await puppeteer.launch({ headless: false });
+                try {
+                    const page = await browser.newPage();
+                    await page.goto(`${this.baseUrl}${chapterSlug}`, {
+                        waitUntil: 'networkidle0',
+                    });
+                    const pages = await page.$$eval(
+                        '.reading-detail .page-chapter',
+                        (pagesRaw) => {
+                            return [...pagesRaw].map((page) => {
+                                const id = String(
+                                    page
+                                        .querySelector('img')
+                                        ?.getAttribute('data-index'),
+                                );
+
+                                const source = page
+                                    .querySelector('img')
+                                    ?.getAttribute('data-original');
+
+                                const srcCDN = page
+                                    .querySelector('img')
+                                    ?.getAttribute('data-cdn');
+
+                                const alternativeSrc = page
+                                    .querySelector('img')
+                                    ?.getAttribute('src');
+
+                                const imgSrc = ['http', 'https'].some(
+                                    (protocol) =>
+                                        String(source).includes(protocol),
+                                )
+                                    ? String(source)
+                                    : `https:${String(source)}`;
+
+                                const imgSrcCDN = ['http', 'https'].some(
+                                    (protocol) =>
+                                        String(
+                                            srcCDN ? srcCDN : alternativeSrc,
+                                        ).includes(protocol),
+                                )
+                                    ? String(srcCDN ? srcCDN : alternativeSrc)
+                                    : `https:${String(
+                                          srcCDN ? srcCDN : alternativeSrc,
+                                      )}`;
+
+                                return {
+                                    id,
+                                    src: imgSrc,
+                                    fallbackSrc: imgSrcCDN,
+                                };
+                            });
+                        },
+                    );
+
+                    await browser.close();
+
+                    return pages;
+                } catch (error) {
+                    console.log('error::: ', error);
+                    await browser.close();
+                    return [] as Page_Image[];
+                }
+            }
         }
     }
 
@@ -444,7 +525,7 @@ export default class NtModel extends Scraper {
     public async getMetaInfoFromPages(chapterSlug: string) {
         try {
             const { data } = await this.client.get(
-                `${this.baseUrl}/${chapterSlug}`,
+                `${this.baseUrl}${chapterSlug}`,
             );
 
             const document = parse(data);
@@ -457,8 +538,43 @@ export default class NtModel extends Scraper {
 
             return title;
         } catch (error) {
-            console.log('ERROR: ', error);
-            return null;
+            try {
+                const { data } = await axios.get(`${NtFbURL}${chapterSlug}`);
+
+                const document = parse(data);
+
+                const aTag = document.querySelector(
+                    '#ctl00_divCenter > div > div:nth-child(1) > div.top > h1 > a',
+                );
+
+                if (!aTag) throw new Error();
+
+                const title = normalizeString(String(aTag?.textContent));
+
+                return title;
+            } catch (error) {
+                try {
+                    const browser = await puppeteer.launch({ headless: false });
+                    const page = await browser.newPage();
+
+                    await page.goto(`${this.baseUrl}${chapterSlug}`);
+
+                    const title = await page.$eval(
+                        '#ctl00_divCenter > div > div:nth-child(1) > div.top > h1 > a',
+                        (dom) => {
+                            return String(dom.textContent);
+                        },
+                    );
+
+                    console.log('title:: ', title);
+                    await browser.close();
+
+                    return title;
+                } catch (error) {
+                    console.log('FINAL ERROR: ', error);
+                    return null;
+                }
+            }
         }
     }
 }
