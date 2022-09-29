@@ -553,8 +553,8 @@ export default class NtModel extends Scraper {
 
                 return title;
             } catch (error) {
+                const browser = await puppeteer.launch({ headless: false });
                 try {
-                    const browser = await puppeteer.launch({ headless: false });
                     const page = await browser.newPage();
 
                     await page.goto(`${this.baseUrl}${chapterSlug}`);
@@ -572,6 +572,7 @@ export default class NtModel extends Scraper {
                     return title;
                 } catch (error) {
                     console.log('FINAL ERROR: ', error);
+                    await browser.close();
                     return null;
                 }
             }
