@@ -58,3 +58,12 @@ export const GENRES_NT: Genres_NT[] = [
     { id: '57', value: 'xuyen-khong-205', label: 'Xuyên không' },
     { id: '60', value: '16', label: '16+' },
 ];
+
+export const reactionTypes = [
+    'clown_face',
+    'thumbs_up',
+    'heart',
+    'enraged_face',
+];
+
+export const reactionOptions = ['up', 'down'];
