@@ -1,3 +1,4 @@
+// @ts-nocheck
 import axios, { AxiosRequestConfig } from 'axios';
 import { parse } from 'node-html-parser';
 import { Chapter, LHSearch, Page_Image } from 'types';
