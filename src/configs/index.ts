@@ -14,6 +14,8 @@ export const NtFbURL = process.env.NT_SOURCE_FALLBACK_URL as string;
 export const LhURL = process.env.LH_SOURCE_URL as string;
 export const OtkUrl = process.env.OTK_SOURCE_URL as string;
 
+export const AdminId = process.env.ADMIN_ID as string;
+
 export const PORT = Number(process.env.PORT) || 5050;
 
 export const mongoDbRemoteClient = mongoose.createConnection(mongodbRemoteURI, {
