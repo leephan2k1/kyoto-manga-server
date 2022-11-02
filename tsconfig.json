@@ -15,7 +15,8 @@
         "baseUrl": "src",
         "paths": {
             "@/*": ["*"]
-        }
+        },
+        "lib": ["es2021", "dom"]
     },
     "include": ["src/**/*.ts", "src/**/*.json", ".env"],
     "exclude": ["node_modules", "src/http", "src/logs", "src/tests"]
