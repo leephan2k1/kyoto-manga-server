@@ -156,9 +156,7 @@ export async function handleDeleteComment(
     try {
         const { commentId } = req.params as DeleteParamsComment;
 
-        // await Comment.findByIdAndDelete(commentId);
-
-        // remove n-n relationships
+        // remove 1-n relationships
         const commentShouldRm = await Comment.findById(commentId);
         // @ts-ignore
         const { replyTo, replies } = commentShouldRm;
