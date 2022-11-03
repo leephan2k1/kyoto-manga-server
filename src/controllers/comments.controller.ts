@@ -86,11 +86,12 @@ export async function handleGetComments(
             })
             .limit(limit)
             .skip((page - 1) * limit)
-            .populate('owner')
+            .populate('owner', { _id: 0, emailVerified: 0, email: 0 })
             .populate({
                 path: 'replies',
                 populate: {
                     path: 'owner',
+                    select: { _id: 0, emailVerified: 0, email: 0 },
                 },
             });
 
