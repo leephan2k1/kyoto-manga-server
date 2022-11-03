@@ -55,11 +55,12 @@ const commentRoutes: RouteOptions[] = [
                 type: 'object',
                 properties: {
                     comicSlug: { type: 'string' },
+                    comicName: { type: 'string' },
                     contents: { type: 'string' },
                     section: { type: 'string' },
                     isSpoil: { type: 'boolean' },
                 },
-                required: ['comicSlug', 'contents', 'section'],
+                required: ['comicSlug', 'comicName', 'contents', 'section'],
             },
         },
         preHandler: [validateUsers, validateContents],

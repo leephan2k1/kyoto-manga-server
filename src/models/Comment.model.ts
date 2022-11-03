@@ -5,9 +5,11 @@ const { Schema } = mongoose;
 const CommentSchema = new Schema(
     {
         comicSlug: { type: String, index: true, require: true },
+        comicName: { type: String, require: true },
         section: { type: String, require: true, index: true },
         contents: { type: String, require: true },
         owner: { type: Schema.Types.ObjectId, require: true, ref: 'users' },
+        replyTo: { type: Schema.Types.ObjectId },
         replies: [
             {
                 type: Schema.Types.ObjectId,
