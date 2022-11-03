@@ -3,6 +3,7 @@ import Comment from '../models/Comment.model';
 import Notification from '../models/Notification.model';
 import { cleanContents } from '../utils/stringHandler';
 import { reactionTypes, reactionOptions } from '../constants';
+import mongoose from 'mongoose';
 
 interface CreateBodyComment {
     comicSlug: string;
@@ -137,7 +138,7 @@ export async function handleReply(req: FastifyRequest, rep: FastifyReply) {
             }),
             await Notification.create({
                 owner,
-                comment: reply._id,
+                comment: _id,
                 response: userId,
             }),
         ]);
@@ -181,7 +182,12 @@ export async function handleDeleteComment(
             }),
         );
 
-        await commentShouldRm?.remove();
+        await Promise.allSettled([
+            await commentShouldRm?.remove(),
+            await Notification.deleteMany({
+                comment: new mongoose.Types.ObjectId(commentId),
+            }),
+        ]);
 
         return rep.status(200).send({ status: 'success' });
     } catch (error) {
