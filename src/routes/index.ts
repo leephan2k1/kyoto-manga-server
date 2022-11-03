@@ -2,6 +2,7 @@ import { DoneFuncWithErrOrRes, FastifyInstance, RouteOptions } from 'fastify';
 import comicRoutes from './comic.routes';
 import chapterRoutes from './chapter.routes';
 import commentRoutes from './comment.routes';
+import userRoutes from './user.routes';
 import { proxyHandler } from '../controllers/proxy.controller';
 
 export default function routes(
@@ -18,6 +19,10 @@ export default function routes(
     });
 
     commentRoutes.forEach((route) => {
+        fastify.route(route);
+    });
+
+    userRoutes.forEach((route) => {
         fastify.route(route);
     });
 
