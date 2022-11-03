@@ -1,10 +1,12 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import Comment from '../models/Comment.model';
+import Notification from '../models/Notification.model';
 import { cleanContents } from '../utils/stringHandler';
 import { reactionTypes, reactionOptions } from '../constants';
 
 interface CreateBodyComment {
     comicSlug: string;
+    comicName: string;
     contents: string;
     section: string;
     isSpoil?: boolean;
@@ -44,11 +46,12 @@ export async function handleCreateComment(
 ) {
     try {
         const { userId } = req.params as CreateParamsComment;
-        const { comicSlug, contents, isSpoil, section } =
+        const { comicName, comicSlug, contents, isSpoil, section } =
             req.body as CreateBodyComment;
 
         await Comment.create({
             comicSlug,
+            comicName,
             contents: cleanContents(contents),
             owner: userId,
             isSpoil,
@@ -116,19 +119,28 @@ export async function handleReply(req: FastifyRequest, rep: FastifyReply) {
             });
         }
 
-        const { comicSlug, section } = commentIsReplied;
+        const { comicSlug, comicName, section, owner, _id } = commentIsReplied;
 
         const reply = await Comment.create({
             comicSlug,
+            comicName,
             section,
             isSpoil,
+            replyTo: _id,
             contents: cleanContents(contents),
             owner: userId,
         });
 
-        await commentIsReplied.updateOne({
-            $addToSet: { replies: [reply._id] },
-        });
+        await Promise.allSettled([
+            await commentIsReplied.updateOne({
+                $addToSet: { replies: [reply._id] },
+            }),
+            await Notification.create({
+                owner,
+                comment: reply._id,
+                response: userId,
+            }),
+        ]);
 
         rep.status(201).send({ status: 'success' });
     } catch (error) {
@@ -144,7 +156,34 @@ export async function handleDeleteComment(
     try {
         const { commentId } = req.params as DeleteParamsComment;
 
-        await Comment.findByIdAndDelete(commentId);
+        // await Comment.findByIdAndDelete(commentId);
+
+        // remove n-n relationships
+        const commentShouldRm = await Comment.findById(commentId);
+        // @ts-ignore
+        const { replyTo, replies } = commentShouldRm;
+
+        await Promise.allSettled(
+            Array.from([replyTo, replies]).map(async (action) => {
+                if (!action) return;
+                // remove replies
+                if (Array.isArray(action)) {
+                    console.log('replies:: ', action);
+
+                    await Comment.deleteMany({ _id: { $in: action } });
+                } else {
+                    console.log('replyTo:: ', action);
+
+                    await Comment.findByIdAndUpdate(action, {
+                        $pull: {
+                            replies: { $in: [commentId] },
+                        },
+                    });
+                }
+            }),
+        );
+
+        await commentShouldRm?.remove();
 
         return rep.status(200).send({ status: 'success' });
     } catch (error) {
