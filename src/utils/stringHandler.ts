@@ -22,12 +22,21 @@ export function cleanContents(contents: string) {
     const engFilter = new EngFilter();
     const vieFilterRegEx = VieFilter.regexp;
 
-    const cleanContentEng = engFilter.clean(contents);
+    try {
+        const cleanContentEng = engFilter.clean(contents);
 
-    const cleanContentVie = cleanContentEng.replace(
-        new RegExp(vieFilterRegEx, 'g'),
-        '***',
-    );
+        const cleanContentVie = cleanContentEng.replace(
+            new RegExp(vieFilterRegEx, 'g'),
+            '***',
+        );
 
-    return cleanContentVie;
+        return cleanContentVie;
+    } catch (error) {
+        const cleanContentVie = contents.replace(
+            new RegExp(vieFilterRegEx, 'g'),
+            '***',
+        );
+
+        return cleanContentVie;
+    }
 }
