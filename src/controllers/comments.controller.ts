@@ -36,7 +36,7 @@ interface CommentsQueryParams {
     page: number;
 }
 
-interface ReactionQueryParams {
+interface ReactionBody {
     options: 'up' | 'down';
     reactionType: 'clown_face' | 'thumbs_up' | 'heart' | 'enraged_face';
 }
@@ -232,10 +232,10 @@ export async function handleEditComment(
 
 export async function handleReaction(req: FastifyRequest, rep: FastifyReply) {
     try {
-        const { options, reactionType } = req.query as ReactionQueryParams;
-        const { commentId } = req.params as Pick<
+        const { options, reactionType } = req.body as ReactionBody;
+        const { commentId, userId } = req.params as Pick<
             DeleteParamsComment,
-            'commentId'
+            'commentId' | 'userId'
         >;
 
         const comment = await Comment.findById(commentId);
@@ -258,35 +258,18 @@ export async function handleReaction(req: FastifyRequest, rep: FastifyReply) {
             });
         }
 
-        const { reactions, totalReactions } = comment;
+        const reactionField = `reactions.${reactionType}`;
 
         if (options === 'up') {
             await comment.updateOne({
-                $set: {
-                    totalReactions: totalReactions + 1,
-                    reactions: {
-                        ...reactions,
-                        [reactionType]:
-                            reactions && reactions[reactionType] + 1,
-                    },
+                $addToSet: {
+                    [reactionField]: [userId],
                 },
             });
         } else {
             await comment.updateOne({
-                $set: {
-                    totalReactions:
-                        totalReactions > 0 &&
-                        reactions &&
-                        reactions[reactionType] > 0
-                            ? totalReactions - 1
-                            : totalReactions,
-                    reactions: {
-                        ...reactions,
-                        [reactionType]:
-                            reactions && reactions[reactionType] > 0
-                                ? reactions[reactionType] - 1
-                                : 0,
-                    },
+                $pull: {
+                    [reactionField]: { $in: [userId] },
                 },
             });
         }

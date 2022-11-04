@@ -85,14 +85,18 @@ const commentRoutes: RouteOptions[] = [
         handler: handleReply,
     },
     {
-        url: '/comments/:commentId/reaction',
+        url: '/comments/:commentId/:userId/reaction',
         method: 'POST',
         schema: {
-            querystring: {
-                options: { type: 'string' },
-                reactionType: { type: 'string' },
+            body: {
+                type: 'object',
+                properties: {
+                    options: { type: 'string' },
+                    reactionType: { type: 'string' },
+                },
             },
         },
+        preHandler: [validateUsers],
         handler: handleReaction,
     },
 ];
