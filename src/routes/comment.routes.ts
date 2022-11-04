@@ -41,6 +41,7 @@ const commentRoutes: RouteOptions[] = [
                 type: 'object',
                 properties: {
                     contents: { type: 'string' },
+                    isSpoil: { type: 'boolean' },
                 },
             },
         },

@@ -83,19 +83,23 @@ export async function handleGetComments(
             });
         }
 
-        const comments = await Comment.find({ comicSlug, section })
+        const comments = await Comment.find({
+            comicSlug,
+            section,
+            replyTo: { $eq: undefined },
+        })
             // @ts-ignore
             .sort({
                 [orderBy]: order,
             })
             .limit(limit)
             .skip((page - 1) * limit)
-            .populate('owner', { _id: 0, emailVerified: 0, email: 0 })
+            .populate('owner', { emailVerified: 0, email: 0 })
             .populate({
                 path: 'replies',
                 populate: {
                     path: 'owner',
-                    select: { _id: 0, emailVerified: 0, email: 0 },
+                    select: { emailVerified: 0, email: 0 },
                 },
             });
 
@@ -206,10 +210,17 @@ export async function handleEditComment(
             'commentId'
         >;
 
-        const { contents } = req.body as Pick<CreateBodyComment, 'contents'>;
+        const { contents, isSpoil } = req.body as Pick<
+            CreateBodyComment,
+            'contents' | 'isSpoil'
+        >;
 
         await Comment.findByIdAndUpdate(commentId, {
-            $set: { contents: cleanContents(contents), lastEdited: Date.now() },
+            $set: {
+                contents: cleanContents(contents),
+                isSpoil,
+                lastEdited: Date.now(),
+            },
         });
 
         return rep.status(200).send({ status: 'success' });
