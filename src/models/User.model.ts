@@ -8,6 +8,7 @@ const userSchema = {
     name: { type: String },
     email: { type: String },
     image: { type: String },
+    socketIds: [{ type: String, index: true }],
 };
 
 const UserSchema = new Schema(userSchema);

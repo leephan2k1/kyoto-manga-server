@@ -4,6 +4,8 @@ import Notification from '../models/Notification.model';
 import { cleanContents } from '../utils/stringHandler';
 import { reactionTypes, reactionOptions } from '../constants';
 import mongoose from 'mongoose';
+import server from '../index';
+import User from '../models/User.model';
 
 interface CreateBodyComment {
     comicSlug: string;
@@ -146,6 +148,19 @@ export async function handleReply(req: FastifyRequest, rep: FastifyReply) {
                 response: userId,
             }),
         ]);
+
+        if (String(owner) !== String(userId)) {
+            const ownerWasReplied = await User.findById(owner);
+
+            if (
+                ownerWasReplied?.socketIds &&
+                Array.isArray(ownerWasReplied?.socketIds)
+            ) {
+                ownerWasReplied?.socketIds.map((socketId) => {
+                    server.io.to(socketId).emit('hasReply', { ping: true });
+                });
+            }
+        }
 
         rep.status(201).send({ status: 'success' });
     } catch (error) {

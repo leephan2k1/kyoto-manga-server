@@ -5,9 +5,11 @@ import dotenv from 'dotenv';
 import tasks from './services/cron.service';
 import cors from '@fastify/cors';
 import { voteSchema } from './schema/VoteSchema';
+import FastifyWs from 'fastify-socket.io';
+import socketRoute from './routes/socket.routes';
 dotenv.config();
 
-const server = fastify({ logger: true });
+const server = fastify({ logger: false });
 
 //@ts-ignore
 server.register(routes, { prefix: '/api/v2' });
@@ -22,6 +24,8 @@ server.register(cors, {
     ],
 });
 
+server.register(FastifyWs, { cors: { origin: '*' } });
+
 (async function () {
     try {
         await server.ready();
@@ -30,8 +34,12 @@ server.register(cors, {
         console.log(`Server listening at ${address}`);
 
         tasks.forEach((task) => task.start());
+
+        socketRoute(server);
     } catch (err) {
         server.log.error(err);
         process.exit(1);
     }
 })();
+
+export default server;
