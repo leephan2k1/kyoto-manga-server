@@ -1,5 +1,5 @@
 import fastify from 'fastify';
-import { PORT } from './configs';
+import { PORT, NGINX_CONFIGS_SUB_PATH } from './configs';
 import routes from './routes';
 import dotenv from 'dotenv';
 import tasks from './services/cron.service';
@@ -17,14 +17,13 @@ server.register(routes, { prefix: '/api/v2' });
 server.addSchema(voteSchema);
 
 server.register(cors, {
-    origin: [
-        'http://localhost:3000',
-        'https://kyotomanga.live',
-        'https://uptime-kyotomanga-source-production.up.railway.app',
-    ],
+    origin: ['http://localhost:3000', 'https://kyotomanga.live'],
 });
 
-server.register(FastifyWs, { cors: { origin: '*' } });
+server.register(FastifyWs, {
+    cors: { origin: ['http://localhost:3000', 'https://kyotomanga.live'] },
+    path: `${NGINX_CONFIGS_SUB_PATH}/socket.io`,
+});
 
 (async function () {
     try {

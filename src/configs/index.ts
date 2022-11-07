@@ -17,6 +17,7 @@ export const OtkUrl = process.env.OTK_SOURCE_URL as string;
 export const AdminId = process.env.ADMIN_ID as string;
 
 export const PORT = Number(process.env.PORT) || 5050;
+export const NGINX_CONFIGS_SUB_PATH = process.env.NGINX_CONFIGS_SUB_PATH || '';
 
 export const mongoDbRemoteClient = mongoose.createConnection(mongodbRemoteURI, {
     dbName: 'kyoto-manga-db',
