@@ -13,4 +13,8 @@ export default function socketRoute(fastify: FastifyInstance) {
             removeSocketId(socket.id);
         });
     });
+
+    fastify.io.on('connect_error', (err) => {
+        console.error('SOCKET CONNECT ERROR:: ', err?.message);
+    });
 }
