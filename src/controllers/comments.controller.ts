@@ -295,3 +295,24 @@ export async function handleReaction(req: FastifyRequest, rep: FastifyReply) {
         rep.status(500).send({ status: 'error' });
     }
 }
+
+export async function handleGetRecentlyComments(
+    req: FastifyRequest,
+    rep: FastifyReply,
+) {
+    try {
+        const { limit } = req.query as Pick<CommentsQueryParams, 'limit'>;
+
+        const comments = await Comment.find({
+            replyTo: { $eq: undefined },
+        })
+            .populate('owner')
+            .sort({ createdAt: -1 })
+            .limit(limit);
+
+        return rep.status(200).send({ status: 'success', comments });
+    } catch (error) {
+        console.log('error::: ', error);
+        rep.status(500).send({ status: 'error' });
+    }
+}

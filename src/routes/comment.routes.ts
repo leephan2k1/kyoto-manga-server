@@ -6,6 +6,7 @@ import {
     handleDeleteComment,
     handleEditComment,
     handleReaction,
+    handleGetRecentlyComments,
 } from '../controllers/comments.controller';
 import { validateContents } from '../middlewares/validateCommentContents';
 import { validateUsers } from '../middlewares/validateUsers';
@@ -26,6 +27,16 @@ const commentRoutes: RouteOptions[] = [
             },
         },
         handler: handleGetComments,
+    },
+    {
+        url: '/comments/recently',
+        method: 'GET',
+        schema: {
+            querystring: {
+                limit: { type: 'number', default: 20 },
+            },
+        },
+        handler: handleGetRecentlyComments,
     },
     {
         url: '/comments/:commentId/:userId',
