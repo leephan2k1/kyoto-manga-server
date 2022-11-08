@@ -138,18 +138,17 @@ export async function handleReply(req: FastifyRequest, rep: FastifyReply) {
             owner: userId,
         });
 
-        await Promise.allSettled([
-            await commentIsReplied.updateOne({
-                $addToSet: { replies: [reply._id] },
-            }),
+        await commentIsReplied.updateOne({
+            $addToSet: { replies: [reply._id] },
+        });
+
+        if (String(owner) !== String(userId)) {
             await Notification.create({
                 owner,
                 comment: _id,
                 response: userId,
-            }),
-        ]);
+            });
 
-        if (String(owner) !== String(userId)) {
             const ownerWasReplied = await User.findById(owner);
 
             if (
