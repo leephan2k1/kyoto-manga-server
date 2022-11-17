@@ -248,7 +248,7 @@ export default class NtModel extends Scraper {
         } catch (err) {
             const browser = await puppeteer.launch({
                 headless: false,
-                args: ['--no-sandbox'],
+                args: ['--no-sandbox', '--disable-setuid-sandbox'],
             });
 
             try {
@@ -623,7 +623,7 @@ export default class NtModel extends Scraper {
             } catch (error) {
                 const browser = await puppeteer.launch({
                     headless: false,
-                    args: ['--no-sandbox'],
+                    args: ['--no-sandbox', '--disable-setuid-sandbox'],
                 });
                 try {
                     const page = await browser.newPage();
@@ -872,7 +872,7 @@ export default class NtModel extends Scraper {
             } catch (error) {
                 const browser = await puppeteer.launch({
                     headless: false,
-                    args: ['--no-sandbox'],
+                    args: ['--no-sandbox', '--disable-setuid-sandbox'],
                 });
                 try {
                     const page = await browser.newPage();
