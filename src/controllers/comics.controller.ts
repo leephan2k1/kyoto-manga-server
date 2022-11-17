@@ -419,6 +419,18 @@ export default function comicsController() {
                 gender,
             );
 
+            if (result.mangaData.length > 0) {
+                await RTComic.updateOne(
+                    { type: top },
+                    {
+                        type: top,
+                        comics: result.mangaData,
+                        totalPages: result.totalPages,
+                    },
+                    { upsert: true },
+                );
+            }
+
             res.status(200).send({
                 message: 'ok',
                 result,
