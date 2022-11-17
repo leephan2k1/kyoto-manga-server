@@ -13,6 +13,13 @@ import { uploadImage } from '../services/cloudinary.service';
 import logEvents from '../utils/logEvents';
 import { normalizeString } from '../utils/stringHandler';
 
+import Xvfb from 'xvfb';
+
+const xvfb = new Xvfb({
+    silent: true,
+    xvfb_args: ['-screen', '0', '1280x720x24', '-ac'],
+});
+
 const Lh = lhModel.Instance(LhURL, 30000);
 const Otk = OTKModel.Instance(OtkUrl);
 
@@ -246,6 +253,10 @@ export default class NtModel extends Scraper {
 
             return { mangaData, totalPages };
         } catch (err) {
+            await xvfb.start((err) => {
+                if (err) console.error('xvfb err::', err);
+            });
+
             const browser = await puppeteer.launch({
                 headless: false,
                 args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -554,9 +565,11 @@ export default class NtModel extends Scraper {
                     };
                 });
 
+                await xvfb.stop();
                 await browser.close();
                 return result;
             } catch (error) {
+                await xvfb.stop();
                 await browser.close();
                 console.log('final error advancedSearch:: ', error);
                 return { mangaData: [], totalPages: 0 };
@@ -621,6 +634,10 @@ export default class NtModel extends Scraper {
 
                 return pages;
             } catch (error) {
+                await xvfb.start((err) => {
+                    if (err) console.error('xvfb err::', err);
+                });
+
                 const browser = await puppeteer.launch({
                     headless: false,
                     args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -679,11 +696,13 @@ export default class NtModel extends Scraper {
                         },
                     );
 
+                    await xvfb.stop();
                     await browser.close();
 
                     return pages;
                 } catch (error) {
                     console.log('error::: ', error);
+                    await xvfb.stop();
                     await browser.close();
                     return [] as Page_Image[];
                 }
@@ -870,6 +889,10 @@ export default class NtModel extends Scraper {
 
                 return title;
             } catch (error) {
+                await xvfb.start((err) => {
+                    if (err) console.error('xvfb err::', err);
+                });
+
                 const browser = await puppeteer.launch({
                     headless: false,
                     args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -886,12 +909,13 @@ export default class NtModel extends Scraper {
                         },
                     );
 
-                    console.log('title:: ', title);
+                    await xvfb.stop();
                     await browser.close();
 
                     return title;
                 } catch (error) {
                     console.log('FINAL ERROR: ', error);
+                    await xvfb.stop();
                     await browser.close();
                     return null;
                 }
