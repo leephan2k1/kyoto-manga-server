@@ -247,7 +247,7 @@ export default class NtModel extends Scraper {
             return { mangaData, totalPages };
         } catch (err) {
             const browser = await puppeteer.launch({
-                headless: true,
+                headless: false,
                 args: ['--no-sandbox', '--disable-setuid-sandbox'],
             });
 
@@ -622,7 +622,7 @@ export default class NtModel extends Scraper {
                 return pages;
             } catch (error) {
                 const browser = await puppeteer.launch({
-                    headless: true,
+                    headless: false,
                     args: ['--no-sandbox', '--disable-setuid-sandbox'],
                 });
                 try {
@@ -871,7 +871,7 @@ export default class NtModel extends Scraper {
                 return title;
             } catch (error) {
                 const browser = await puppeteer.launch({
-                    headless: true,
+                    headless: false,
                     args: ['--no-sandbox', '--disable-setuid-sandbox'],
                 });
                 try {
