@@ -269,6 +269,7 @@ export default class NtModel extends Scraper {
                     `${this.baseUrl}/tim-truyen-nang-cao?genres=${genres}&gender=${gender}&minchapter=${minchapter}&sort=${top}&page=${page}&status=${status}`,
                     {
                         waitUntil: 'networkidle0',
+                        timeout: 100000,
                     },
                 );
 
@@ -646,6 +647,7 @@ export default class NtModel extends Scraper {
                     const page = await browser.newPage();
                     await page.goto(`${this.baseUrl}${chapterSlug}`, {
                         waitUntil: 'networkidle0',
+                        timeout: 100000,
                     });
                     const pages = await page.$$eval(
                         '.reading-detail .page-chapter',
