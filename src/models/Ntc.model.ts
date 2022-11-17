@@ -246,8 +246,318 @@ export default class NtModel extends Scraper {
 
             return { mangaData, totalPages };
         } catch (err) {
-            console.log(err);
-            return { mangaData: [], totalPages: 0 };
+            const browser = await puppeteer.launch({ headless: false });
+
+            try {
+                const pageC = await browser.newPage();
+
+                await pageC.goto(
+                    `${this.baseUrl}/tim-truyen-nang-cao?genres=${genres}&gender=${gender}&minchapter=${minchapter}&sort=${top}&page=${page}&status=${status}`,
+                    {
+                        waitUntil: 'networkidle0',
+                    },
+                );
+
+                const result = await pageC.$eval('.main', (dom) => {
+                    const mangaList = dom.querySelectorAll(
+                        '#aspnetForm > main > div:nth-child(2) > div.row .item',
+                    );
+
+                    const normalizeString = (str: string) => {
+                        const htmlTagsRegex = /(&nbsp;|<([^>]+)>)/g;
+                        return str
+                            .trim()
+                            .replace(/(\r\n|\n|\r|\")/gm, '')
+                            .replace(htmlTagsRegex, '');
+                    };
+
+                    const GENRES_NT = [
+                        { id: '1', value: 'action', label: 'Action' },
+                        { id: '2', value: 'truong-thanh', label: 'Adult' },
+                        { id: '3', value: 'adventure', label: 'Adventure' },
+                        { id: '4', value: 'anime', label: 'Anime' },
+                        {
+                            id: '5',
+                            value: 'chuyen-sinh-213',
+                            label: 'Chuyển sinh',
+                        },
+                        { id: '6', value: 'comedy-99', label: 'Comedy' },
+                        { id: '7', value: 'comic', label: 'Comic' },
+                        { id: '8', value: 'cooking', label: 'Cooking' },
+                        { id: '9', value: 'co-dai-207', label: 'Cổ đại' },
+                        {
+                            id: '10',
+                            value: 'doujinshi',
+                            label: 'Doujinshi',
+                        },
+                        { id: '11', value: 'drama-103', label: 'Drama' },
+                        { id: '12', value: 'dam-my', label: 'Đam mỹ' },
+                        { id: '13', value: 'ecchi', label: 'Ecchi' },
+                        {
+                            id: '14',
+                            value: 'fantasy-105',
+                            label: 'Fantasy',
+                        },
+                        { id: '16', value: 'harem-107', label: 'Harem' },
+                        {
+                            id: '17',
+                            value: 'historical',
+                            label: 'Historical',
+                        },
+                        { id: '18', value: 'horror', label: 'Horror' },
+                        { id: '20', value: 'josei', label: 'Josei' },
+                        {
+                            id: '21',
+                            value: 'live-action',
+                            label: 'Live action',
+                        },
+                        { id: '23', value: 'manga-112', label: 'Manga' },
+                        { id: '24', value: 'manhua', label: 'Manhua' },
+                        {
+                            id: '25',
+                            value: 'manhwa-11400',
+                            label: 'Manhwa',
+                        },
+                        {
+                            id: '10',
+                            value: 'doujinshi',
+                            label: 'Doujinshi',
+                        },
+                        {
+                            id: '26',
+                            value: 'martial-arts',
+                            label: 'Martial Arts',
+                        },
+                        { id: '27', value: 'mature', label: 'Mature' },
+                        { id: '28', value: 'mecha-117', label: 'Mecha' },
+                        { id: '30', value: 'mystery', label: 'Mystery' },
+                        {
+                            id: '32',
+                            value: 'ngon-tinh',
+                            label: 'Ngôn tình',
+                        },
+                        { id: '33', value: 'one-shot', label: 'One shot' },
+                        {
+                            id: '34',
+                            value: 'psychological',
+                            label: 'Psychological',
+                        },
+                        {
+                            id: '35',
+                            value: 'romance-121',
+                            label: 'Romance',
+                        },
+                        {
+                            id: '36',
+                            value: 'school-life',
+                            label: 'School Life',
+                        },
+                        { id: '37', value: 'sci-fi', label: 'Sci-fi' },
+                        { id: '38', value: 'seinen', label: 'Seinen' },
+                        { id: '39', value: 'shoujo', label: 'Shoujo' },
+                        {
+                            id: '40',
+                            value: 'shoujo-ai-126',
+                            label: 'Shoujo Ai',
+                        },
+                        {
+                            id: '41',
+                            value: 'shounen-127',
+                            label: 'Shounen',
+                        },
+                        {
+                            id: '42',
+                            value: 'shounen-ai',
+                            label: 'Shounen Ai',
+                        },
+                        {
+                            id: '43',
+                            value: 'slice-of-life',
+                            label: 'Slice Of Life',
+                        },
+                        { id: '58', value: 'yaoi', label: 'Yaoi' },
+                        {
+                            id: '45',
+                            value: 'soft-yaoi',
+                            label: 'Soft Yaoi',
+                        },
+                        { id: '59', value: 'yuri', label: 'Yuri' },
+                        {
+                            id: '46',
+                            value: 'soft-yuri',
+                            label: 'Soft Yuri',
+                        },
+                        { id: '47', value: 'sports', label: 'Sports' },
+                        {
+                            id: '48',
+                            value: 'supernatural',
+                            label: 'Supernatural',
+                        },
+                        { id: '44', value: 'smut', label: 'Smut' },
+                        {
+                            id: '49',
+                            value: 'tap-chi-truyen-tranh',
+                            label: 'Tạp chí truyện tranh',
+                        },
+                        {
+                            id: '50',
+                            value: 'thieu-nhi',
+                            label: 'Thiếu nhi',
+                        },
+                        {
+                            id: '51',
+                            value: 'tragedy-136',
+                            label: 'Tragedy',
+                        },
+                        {
+                            id: '52',
+                            value: 'trinh-tham',
+                            label: 'Trinh thám',
+                        },
+                        {
+                            id: '54',
+                            value: 'truyen-scan',
+                            label: 'Truyện Scan',
+                        },
+                        {
+                            id: '53',
+                            value: 'truyen-mau',
+                            label: 'Truyện màu',
+                        },
+                        { id: '55', value: 'viet-nam', label: 'Việt Nam' },
+                        { id: '56', value: 'webtoon', label: 'Webtoon' },
+                        {
+                            id: '57',
+                            value: 'xuyen-khong-205',
+                            label: 'Xuyên không',
+                        },
+                        { id: '60', value: '16', label: '16+' },
+                    ];
+
+                    const totalPagesPath = String(
+                        document.querySelector('.pagination > li')?.innerHTML,
+                    ).trim();
+
+                    const totalPages =
+                        Number(
+                            totalPagesPath
+                                .substring(totalPagesPath.lastIndexOf('/') + 1)
+                                .trim(),
+                        ) || 1;
+
+                    return {
+                        totalPages,
+                        mangaData: [...mangaList].map((manga) => {
+                            const source = String(
+                                manga
+                                    .querySelector('img')
+                                    ?.getAttribute('data-original'),
+                            );
+
+                            const thumbnail = ['http', 'https'].some(
+                                (protocol) => String(source).includes(protocol),
+                            )
+                                ? String(source)
+                                : `https:${String(source)}`;
+
+                            const newChapter =
+                                manga.querySelector('ul > li > a')?.innerHTML;
+                            const updatedAt =
+                                manga.querySelector('ul > li > i')?.innerHTML;
+                            const view =
+                                manga.querySelector('pull-left > i')?.innerHTML;
+                            const name = normalizeString(
+                                String(manga.querySelector('h3 a')?.innerHTML),
+                            );
+
+                            const tooltip = manga.querySelectorAll(
+                                '.box_li .message_main p',
+                            );
+                            let status: string | null = '';
+                            let author: string | null = '';
+                            let genres: string[] | Genres_NT[] = [];
+                            let otherName: string | null = '';
+
+                            tooltip.forEach((item) => {
+                                const title =
+                                    item.querySelector('label')?.textContent;
+                                const str = normalizeString(
+                                    String(item.textContent).substring(
+                                        String(item.textContent).lastIndexOf(
+                                            ':',
+                                        ) + 1,
+                                    ),
+                                );
+
+                                switch (title) {
+                                    case 'Thể loại:':
+                                        genres = str.split(', ');
+                                        break;
+                                    case 'Tác giả:':
+                                        author = str;
+                                        break;
+                                    case 'Tình trạng:':
+                                        status = str;
+                                        break;
+                                    case 'Tên khác:':
+                                        otherName = str;
+                                        break;
+                                }
+                            });
+
+                            //@ts-ignore
+                            genres = genres?.map((genre) => {
+                                const genreObj = GENRES_NT.find(
+                                    (e) =>
+                                        e.label.toLowerCase().trim() ===
+                                        genre
+                                            .toString()
+                                            .toLocaleLowerCase()
+                                            .trim(),
+                                );
+                                return genreObj;
+                            });
+
+                            const review = normalizeString(
+                                String(
+                                    manga.querySelector('.box_li .box_text')
+                                        ?.textContent,
+                                ),
+                            );
+
+                            const path = String(
+                                manga
+                                    .querySelector('h3 a')
+                                    ?.getAttribute('href'),
+                            );
+                            const slug = path.substring(
+                                path.lastIndexOf('/') + 1,
+                            );
+
+                            return {
+                                status,
+                                author,
+                                genres,
+                                otherName,
+                                review,
+                                newChapter,
+                                thumbnail,
+                                view,
+                                name,
+                                updatedAt,
+                                slug,
+                            };
+                        }),
+                    };
+                });
+
+                await browser.close();
+                return result;
+            } catch (error) {
+                await browser.close();
+                console.log('final error advancedSearch:: ', error);
+                return { mangaData: [], totalPages: 0 };
+            }
         }
     }
 
