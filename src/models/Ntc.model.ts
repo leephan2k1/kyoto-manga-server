@@ -41,7 +41,7 @@ export default class NtModel extends Scraper {
 
     private async parseSource(document: HTMLElement) {
         const mangaList = document.querySelectorAll(
-            '#ctl00_divCenter > div.Module.Module-170 > div > div.items > div > div',
+            `#ctl00_divCenter .items .row .item`,
         );
 
         const mangaData = [...mangaList].map((manga) => {
@@ -229,24 +229,30 @@ export default class NtModel extends Scraper {
         gender: number,
     ) {
         try {
-            const { data } = await this.client.get(
+            const res = await this.client.get(
                 `${this.baseUrl}/tim-truyen-nang-cao`,
+
                 {
+                    headers: {
+                        accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+                    },
                     params: {
                         genres,
                         gender,
+                        status,
                         minchapter,
                         sort: top,
                         page,
-                        status,
                     },
                 },
             );
 
-            const document = parse(data);
+            const document = parse(res.data);
 
             //@ts-ignore
             const { mangaData, totalPages } = await this.parseSource(document);
+
+            if (mangaData.length === 0) throw new Error();
 
             return { mangaData, totalPages };
         } catch (err) {
