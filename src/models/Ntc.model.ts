@@ -393,66 +393,16 @@ export default class NtModel extends Scraper {
 
                 return pages;
             } catch (error) {
-                const browser = await puppeteer.launch({
-                    headless: true,
-                    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-                });
                 try {
-                    const page = await browser.newPage();
-                    await page.goto(`${this.baseUrl}${chapterSlug}`, {
-                        waitUntil: 'networkidle0',
-                        timeout: 100000,
-                    });
-                    const pages = await page.$$eval(
-                        '.reading-detail .page-chapter',
-                        (pagesRaw) => {
-                            return [...pagesRaw].map((page) => {
-                                const id = String(
-                                    page
-                                        .querySelector('img')
-                                        ?.getAttribute('data-index'),
-                                );
-
-                                const source = page
-                                    .querySelector('img')
-                                    ?.getAttribute('data-original');
-
-                                const srcCDN = page
-                                    .querySelector('img')
-                                    ?.getAttribute('data-cdn');
-
-                                const alternativeSrc = page
-                                    .querySelector('img')
-                                    ?.getAttribute('src');
-
-                                const imgSrc = ['http', 'https'].some(
-                                    (protocol) =>
-                                        String(source).includes(protocol),
-                                )
-                                    ? String(source)
-                                    : `https:${String(source)}`;
-
-                                const imgSrcCDN = ['http', 'https'].some(
-                                    (protocol) =>
-                                        String(
-                                            srcCDN ? srcCDN : alternativeSrc,
-                                        ).includes(protocol),
-                                )
-                                    ? String(srcCDN ? srcCDN : alternativeSrc)
-                                    : `https:${String(
-                                          srcCDN ? srcCDN : alternativeSrc,
-                                      )}`;
-
-                                return {
-                                    id,
-                                    src: imgSrc,
-                                    fallbackSrc: imgSrcCDN,
-                                };
-                            });
-                        },
+                    const { data } = await axios.get(
+                        `${Proxy_URL}/?url=${this.baseUrl}${chapterSlug}`,
                     );
 
-                    await browser.close();
+                    const document = parse(data);
+                    // @ts-ignore
+                    const pages = await this.parseChapterPages(document);
+
+                    if (!pages.length) throw new Error();
 
                     return pages;
                 } catch (error) {
@@ -630,7 +580,9 @@ export default class NtModel extends Scraper {
             return title;
         } catch (error) {
             try {
-                const { data } = await axios.get(`${NtFbURL}${chapterSlug}`);
+                const { data } = await axios.get(
+                    `${Proxy_URL}/?url=${this.baseUrl}${chapterSlug}`,
+                );
 
                 const document = parse(data);
 
@@ -644,31 +596,7 @@ export default class NtModel extends Scraper {
 
                 return title;
             } catch (error) {
-                const browser = await puppeteer.launch({
-                    headless: true,
-                    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-                });
-                try {
-                    const page = await browser.newPage();
-
-                    await page.goto(`${this.baseUrl}${chapterSlug}`);
-
-                    const title = await page.$eval(
-                        '#ctl00_divCenter > div > div:nth-child(1) > div.top > h1 > a',
-                        (dom) => {
-                            return String(dom.textContent);
-                        },
-                    );
-
-                    await browser.close();
-
-                    return title;
-                } catch (error) {
-                    console.log('FINAL ERROR: ', error);
-
-                    await browser.close();
-                    return null;
-                }
+                console.log('FINAL ERROR: ', error);
             }
         }
     }
