@@ -410,6 +410,21 @@ export default function comicsController() {
             const { gender, genres, minChapter, page, status, top } =
                 req.query as FiltersQuery;
 
+            // home page section:
+            if (top === 15 || top === 0) {
+                const rtRes = await RTComic.findOne({ type: `top=${top}` });
+
+                if (rtRes?.comics && rtRes.comics.length) {
+                    return res.status(200).send({
+                        message: 'ok',
+                        result: {
+                            mangaData: rtRes.comics,
+                            totalPage: 1,
+                        },
+                    });
+                }
+            }
+
             const result = await Nt.advancedSearch(
                 genres,
                 minChapter,
@@ -418,7 +433,6 @@ export default function comicsController() {
                 status,
                 gender,
             );
-
 
             res.status(200).send({
                 message: 'ok',
