@@ -16,6 +16,8 @@ export const OtkUrl = process.env.OTK_SOURCE_URL as string;
 
 export const AdminId = process.env.ADMIN_ID as string;
 
+export const Proxy_URL = process.env.PROXY_URL || '';
+
 export const PORT = Number(process.env.PORT) || 5050;
 export const NGINX_CONFIGS_SUB_PATH = process.env.NGINX_CONFIGS_SUB_PATH || '';
 
