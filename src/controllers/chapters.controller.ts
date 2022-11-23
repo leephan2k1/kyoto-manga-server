@@ -62,7 +62,7 @@ export default function chaptersController() {
 
                 if (mainChapters?.length) {
                     const existChapters = chapters?.chapters_list.find(
-                        (chapterObj) => chapterObj.sourceName === 'NTC',
+                        (chapterObj) => chapterObj?.sourceName === 'NTC',
                     );
 
                     if (
@@ -84,15 +84,15 @@ export default function chaptersController() {
                         comic?.sourcesAvailable.map(async (src) => {
                             const chaptersRefresh = await getChapter(
                                 String(src.sourceSlug),
-                                src.sourceName as Source_Type,
+                                src?.sourceName as Source_Type,
                             );
 
                             if (chaptersRefresh?.length) {
                                 const existChapters =
                                     chapters?.chapters_list.find(
                                         (chapterObj) =>
-                                            chapterObj.sourceName ===
-                                            src.sourceName,
+                                            chapterObj?.sourceName ===
+                                            src?.sourceName,
                                     );
 
                                 if (
@@ -101,7 +101,7 @@ export default function chaptersController() {
                                         chaptersRefresh.length
                                 ) {
                                     refreshChapter.push({
-                                        sourceName: src.sourceName,
+                                        sourceName: src?.sourceName,
                                         chapters: chaptersRefresh,
                                     });
                                     newFlag = true;
@@ -154,12 +154,12 @@ export default function chaptersController() {
                         comic.sourcesAvailable.map(async (e) => {
                             const chaptersResult = await getChapter(
                                 String(e.sourceSlug),
-                                e.sourceName as Source_Type,
+                                e?.sourceName as Source_Type,
                             );
 
                             if (chaptersResult && chaptersResult.length > 0) {
                                 chapters.chapters_list.push({
-                                    sourceName: String(e.sourceName),
+                                    sourceName: String(e?.sourceName),
                                     chapters: chaptersResult,
                                 });
                             }

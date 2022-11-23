@@ -173,18 +173,12 @@ export default class NtModel extends Scraper {
         }
     }
 
-    public async getChapters(comicSlug: string): Promise<Chapter[]> {
+    private async parseChapter(document: HTMLElement) {
         try {
-            const { data } = await this.client.get(
-                `${this.baseUrl}/truyen-tranh/${comicSlug}`,
-            );
-
-            const document = parse(data);
-
             const chapterListRaw = document.querySelectorAll(
                 `#item-detail #nt_listchapter ul .row`,
             );
-            const chapterList = [...chapterListRaw].map((chapter) => {
+            return [...chapterListRaw].map((chapter) => {
                 const chapterTitle = normalizeString(
                     String(chapter.querySelector('a')?.textContent),
                 );
@@ -224,12 +218,38 @@ export default class NtModel extends Scraper {
                     view,
                 };
             });
+        } catch (error) {
+            return [] as Chapter[];
+        }
+    }
+
+    public async getChapters(comicSlug: string): Promise<Chapter[]> {
+        try {
+            const { data } = await this.client.get(
+                `${this.baseUrl}/truyen-tranh/${comicSlug}`,
+            );
+
+            const document = parse(data);
+
+            const chapterList = await this.parseChapter(document);
 
             return chapterList;
         } catch (err) {
-            console.log(`Scrape chapter ${comicSlug} error`);
-            logEvents('chapters', `get ${comicSlug} source NTC error!`);
-            return [] as Chapter[];
+            try {
+                const { data } = await this.client.get(
+                    `${Proxy_URL}/?url=${this.baseUrl}/truyen-tranh/${comicSlug}`,
+                );
+
+                const document = parse(data);
+
+                const chapterList = await this.parseChapter(document);
+
+                return chapterList;
+            } catch (error) {
+                console.log(`Scrape chapter ${comicSlug} error`);
+                logEvents('chapters', `get ${comicSlug} source NTC error!`);
+                return [] as Chapter[];
+            }
         }
     }
 
