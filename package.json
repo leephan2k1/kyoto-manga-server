@@ -22,7 +22,7 @@
         "fastify-socket.io": "^4.0.0",
         "mongoose": "^6.5.2",
         "node-cron": "^3.0.0",
-        "node-html-parser": "^5.4.1",
+        "node-html-parser": "^6.1.4",
         "puppeteer": "^18.0.5",
         "socket.io": "^4.5.3",
         "uuid": "^8.3.2",
