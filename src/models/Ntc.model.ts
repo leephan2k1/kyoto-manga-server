@@ -4,7 +4,7 @@ import { parse } from 'node-html-parser';
 import { Chapter, Genres_NT, Page_Image } from 'types';
 import puppeteer from 'puppeteer';
 //@ts-ignore
-import { LhURL, NtFbURL, OtkUrl } from '../configs';
+import { LhURL, NtFbURL, OtkUrl, Proxy_URL } from '../configs';
 import { GENRES_NT } from '../constants';
 import Scraper from '../libs/Scraper';
 import lhModel from '../models/Lh.model';
@@ -155,8 +155,21 @@ export default class NtModel extends Scraper {
             //@ts-ignore
             return document && this.parseSource(document);
         } catch (err) {
-            console.log(err);
-            return { mangaData: [], totalPages: 0 };
+            try {
+                const { data } = await axios.get(
+                    `${Proxy_URL}/?url=${
+                        this.baseUrl
+                    }/tim-truyen?keyword=${encodeURIComponent(query)}`,
+                );
+
+                const document = parse(data);
+
+                //@ts-ignore
+                return document && this.parseSource(document);
+            } catch (error) {
+                console.log(err);
+                return { mangaData: [], totalPages: 0 };
+            }
         }
     }
 
@@ -257,27 +270,48 @@ export default class NtModel extends Scraper {
             return { mangaData, totalPages };
         } catch (err) {
             try {
-                const { data } = await axios.get(`${NtFbURL}/tim-truyen-live`, {
-                    params: {
-                        genres,
-                        gender,
-                        minchapter,
-                        sort: top,
-                        page,
-                        status,
-                    },
-                });
-                const document = parse(data);
+                console.log('get by proxy');
+                const res = await axios.get(
+                    `${Proxy_URL}/?url=${this.baseUrl}/tim-truyen-nang-cao?genres=${genres}&gender=${gender}&status=${status}&minchapter=${minchapter}&sort=${top}&page=${page}`,
+                );
+
+                const document = parse(res.data);
 
                 //@ts-ignore
                 const { mangaData, totalPages } = await this.parseSource(
                     document,
                 );
 
+                if (mangaData.length === 0) throw new Error();
+
                 return { mangaData, totalPages };
             } catch (error) {
-                console.log('error:: ', error);
-                return { mangaData: [], totalPages: 0 };
+                try {
+                    const { data } = await axios.get(
+                        `${NtFbURL}/tim-truyen-live`,
+                        {
+                            params: {
+                                genres,
+                                gender,
+                                minchapter,
+                                sort: top,
+                                page,
+                                status,
+                            },
+                        },
+                    );
+                    const document = parse(data);
+
+                    //@ts-ignore
+                    const { mangaData, totalPages } = await this.parseSource(
+                        document,
+                    );
+
+                    return { mangaData, totalPages };
+                } catch (error) {
+                    console.log('final error:: ', error);
+                    return { mangaData: [], totalPages: 0 };
+                }
             }
         }
     }
