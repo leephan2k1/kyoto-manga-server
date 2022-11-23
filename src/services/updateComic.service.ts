@@ -256,6 +256,34 @@ export async function updateSeasonalComics() {
     }
 }
 
+export async function updateNewReleaseComics() {
+    try {
+        const result = await Nt.advancedSearch(-1, 1, 15, 1, -1, -1);
+
+        if (result.mangaData && result.mangaData.length > 0) {
+            await RTComic.updateOne(
+                { type: 'top=15' },
+                { type: 'top=15', comics: result.mangaData },
+                { upsert: true },
+            );
+        }
+    } catch (error) {}
+}
+
+export async function updateNewUpdatedComics() {
+    try {
+        const result = await Nt.advancedSearch(-1, 1, 0, 1, -1, -1);
+
+        if (result.mangaData && result.mangaData.length > 0) {
+            await RTComic.updateOne(
+                { type: 'top=0' },
+                { type: 'top=0', comics: result.mangaData },
+                { upsert: true },
+            );
+        }
+    } catch (error) {}
+}
+
 const updateComics = [
     updateTopAllView,
     updateTopMonthView,
