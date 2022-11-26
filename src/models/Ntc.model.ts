@@ -415,13 +415,8 @@ export default class NtModel extends Scraper {
         }
     }
 
-    public async getComicBySlug(comicSlug: string) {
+    private async parseComicBySlug(document: HTMLElement, comicSlug: string) {
         try {
-            const { data } = await this.client.get(
-                `${this.baseUrl}/truyen-tranh/${comicSlug}`,
-            );
-            const document = parse(data);
-
             const name = normalizeString(
                 String(
                     document.querySelector('#item-detail > h1')?.textContent,
@@ -512,11 +507,6 @@ export default class NtModel extends Scraper {
                 ),
             );
 
-            thumbnail = await uploadImage(
-                String(thumbnail),
-                `slug ${comicSlug}`,
-            );
-
             const updatedAt = normalizeString(
                 String(
                     document.querySelector(
@@ -557,9 +547,40 @@ export default class NtModel extends Scraper {
                 updatedAt,
                 slug: comicSlug,
             };
-        } catch (err) {
-            logEvents('comics', `get ${comicSlug} failed`);
+        } catch (error) {
+            console.log('parse comic by slug error: ', error);
             return null;
+        }
+    }
+
+    public async getComicBySlug(comicSlug: string) {
+        try {
+            const { data } = await this.client.get(
+                `${this.baseUrl}/truyen-tranh/${comicSlug}`,
+            );
+            const document = parse(data);
+
+            const res = await this.parseComicBySlug(document, comicSlug);
+
+            if (res) return res;
+            else throw new Error();
+        } catch (err) {
+            try {
+                console.log('get by proxy');
+                const { data } = await axios.get(
+                    `${Proxy_URL}/?url=${this.baseUrl}/truyen-tranh/${comicSlug}`,
+                );
+
+                const document = parse(data);
+
+                const res = await this.parseComicBySlug(document, comicSlug);
+
+                if (res) return res;
+                else throw new Error();
+            } catch (error) {
+                logEvents('comics', `get ${comicSlug} failed`);
+                return null;
+            }
         }
     }
 
