@@ -6,6 +6,11 @@ import ComicsCenter from '../models';
 import Comic from '../models/Comic.model';
 import { Nt } from '../models/Ntc.model';
 import RTComic from '../models/RealTimeComic.model';
+import Chapter from '../models/Chapter.model';
+import Page from '../models/Page.model';
+import { Comic as IComic } from '../types';
+
+const { getChapter, getPages, getComics } = ComicsCenter();
 
 export async function insertNewComic(name: string) {
     try {
@@ -260,6 +265,82 @@ export async function updateNewReleaseComics() {
     try {
         const result = await Nt.advancedSearch(-1, 1, 15, 1, -1, -1);
 
+        const comics = await getComics(result.mangaData as IComic[]);
+
+        if (comics && comics.length > 0) {
+            await Promise.allSettled(
+                comics?.map(async (comic) => {
+                    if (comic.status === 'fulfilled') {
+                        const existComic = await Comic.findOne({
+                            slug: comic.value.slug,
+                        });
+
+                        if (!existComic) {
+                            await Comic.updateOne(
+                                { slug: comic.value.slug },
+                                {
+                                    status: comic.value.status,
+                                    author: comic.value.author,
+                                    otherName: comic.value.otherName,
+                                    review: comic.value.review,
+                                    newChapter: comic.value.newChapter,
+                                    thumbnail: comic.value.thumbnail,
+                                    name: comic.value.name,
+                                    updatedAt: comic.value.updatedAt,
+                                    slug: comic.value.slug,
+                                },
+                                { upsert: true },
+                            );
+                        }
+
+                        const chapters = await getChapter(
+                            comic.value.slug,
+                            'NTC',
+                        );
+
+                        if (chapters && chapters.length > 0) {
+                            const chaptersDoc = await Chapter.findOneAndUpdate(
+                                { comicSlug: comic.value.slug },
+                                {
+                                    comicName: comic.value.name,
+                                    comicSlug: comic.value.slug,
+                                    source: 'NTC',
+                                    chapters_list: [
+                                        { sourceName: 'NTC', chapters },
+                                    ],
+                                },
+                                { upsert: true },
+                            );
+                            await Comic.updateOne(
+                                { slug: comic.value.slug },
+                                { $set: { chapters: chaptersDoc?._id } },
+                            );
+
+                            await Promise.allSettled(
+                                chapters.map(async (chapter) => {
+                                    const pages = await getPages(
+                                        chapter.chapterSlug,
+                                        'NTC',
+                                    );
+
+                                    if (pages && pages?.length > 0) {
+                                        await Page.create({
+                                            chapterSlug: chapter.chapterSlug,
+                                            chapter: chaptersDoc?._id,
+                                            pages,
+                                            comicSlug: comic.value.slug,
+                                            comicName: comic.value.name,
+                                            source: 'NTC',
+                                        });
+                                    }
+                                }),
+                            );
+                        }
+                    }
+                }),
+            );
+        }
+
         if (result.mangaData && result.mangaData.length > 0) {
             await RTComic.updateOne(
                 { type: 'top=15' },
@@ -273,6 +354,82 @@ export async function updateNewReleaseComics() {
 export async function updateNewUpdatedComics() {
     try {
         const result = await Nt.advancedSearch(-1, 1, 0, 1, -1, -1);
+
+        const comics = await getComics(result.mangaData as IComic[]);
+
+        if (comics && comics.length > 0) {
+            await Promise.allSettled(
+                comics?.map(async (comic) => {
+                    if (comic.status === 'fulfilled') {
+                        const existComic = await Comic.findOne({
+                            slug: comic.value.slug,
+                        });
+
+                        if (!existComic) {
+                            await Comic.updateOne(
+                                { slug: comic.value.slug },
+                                {
+                                    status: comic.value.status,
+                                    author: comic.value.author,
+                                    otherName: comic.value.otherName,
+                                    review: comic.value.review,
+                                    newChapter: comic.value.newChapter,
+                                    thumbnail: comic.value.thumbnail,
+                                    name: comic.value.name,
+                                    updatedAt: comic.value.updatedAt,
+                                    slug: comic.value.slug,
+                                },
+                                { upsert: true },
+                            );
+                        }
+
+                        const chapters = await getChapter(
+                            comic.value.slug,
+                            'NTC',
+                        );
+
+                        if (chapters && chapters.length > 0) {
+                            const chaptersDoc = await Chapter.findOneAndUpdate(
+                                { comicSlug: comic.value.slug },
+                                {
+                                    comicName: comic.value.name,
+                                    comicSlug: comic.value.slug,
+                                    source: 'NTC',
+                                    chapters_list: [
+                                        { sourceName: 'NTC', chapters },
+                                    ],
+                                },
+                                { upsert: true },
+                            );
+                            await Comic.updateOne(
+                                { slug: comic.value.slug },
+                                { $set: { chapters: chaptersDoc?._id } },
+                            );
+
+                            await Promise.allSettled(
+                                chapters.map(async (chapter) => {
+                                    const pages = await getPages(
+                                        chapter.chapterSlug,
+                                        'NTC',
+                                    );
+
+                                    if (pages && pages?.length > 0) {
+                                        await Page.create({
+                                            chapterSlug: chapter.chapterSlug,
+                                            chapter: chaptersDoc?._id,
+                                            pages,
+                                            comicSlug: comic.value.slug,
+                                            comicName: comic.value.name,
+                                            source: 'NTC',
+                                        });
+                                    }
+                                }),
+                            );
+                        }
+                    }
+                }),
+            );
+        }
 
         if (result.mangaData && result.mangaData.length > 0) {
             await RTComic.updateOne(

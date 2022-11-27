@@ -1,6 +1,6 @@
 import { RouteOptions } from 'fastify';
-import comicsController from '../controllers/comics.controller';
 import chaptersController from '../controllers/chapters.controller';
+import comicsController from '../controllers/comics.controller';
 
 const {
     handleSearch,

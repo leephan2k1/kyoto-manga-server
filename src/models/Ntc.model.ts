@@ -2,14 +2,12 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import { parse } from 'node-html-parser';
 import { Chapter, Genres_NT, Page_Image } from 'types';
-import puppeteer from 'puppeteer';
 //@ts-ignore
 import { LhURL, NtFbURL, OtkUrl, Proxy_URL } from '../configs';
 import { GENRES_NT } from '../constants';
 import Scraper from '../libs/Scraper';
 import lhModel from '../models/Lh.model';
 import OTKModel from '../models/Otk.model';
-import { uploadImage } from '../services/cloudinary.service';
 import logEvents from '../utils/logEvents';
 import { normalizeString } from '../utils/stringHandler';
 
