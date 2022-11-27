@@ -29,22 +29,22 @@ export default function ComicsCenter() {
                                 });
                             }
 
-                            const OtkRes = await Otk.search(e.name);
-                            if (OtkRes?.length && OtkRes[0]?.slug) {
-                                e.sourcesAvailable.push({
-                                    sourceName: 'OTK',
-                                    sourceSlug:
-                                        (process.env.OTK_SOURCE_URL as string) +
-                                        OtkRes[0].slug,
-                                });
-                            }
+                            // const OtkRes = await Otk.search(e.name);
+                            // if (OtkRes?.length && OtkRes[0]?.slug) {
+                            //     e.sourcesAvailable.push({
+                            //         sourceName: 'OTK',
+                            //         sourceSlug:
+                            //             (process.env.OTK_SOURCE_URL as string) +
+                            //             OtkRes[0].slug,
+                            //     });
+                            // }
 
                             return e;
                         }),
                     );
                 }
             } catch (err) {
-                console.log(err);
+                // console.log(err);
             }
         },
 
