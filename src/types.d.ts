@@ -3,7 +3,6 @@ export interface Comic {
     name: string;
     __v?: number;
     author: string;
-    custom_id: number;
     genres: Genre[];
     newChapter: string;
     otherName: string;
