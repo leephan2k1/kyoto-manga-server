@@ -8,8 +8,8 @@ import updateComics, {
 const tasks: ScheduledTask[] = [];
 
 tasks.push(
-    cron.schedule('*/59 * * * *', () => {
-        console.log('update real time comics every 59m');
+    cron.schedule('0 */3 * * *', () => {
+        console.log('update real time comics every 3 hours');
         (async function () {
             try {
                 await Promise.allSettled(
@@ -23,8 +23,8 @@ tasks.push(
 );
 
 tasks.push(
-    cron.schedule('*/10 * * * *', () => {
-        console.log('update real time comics every 10m');
+    cron.schedule('*/59 * * * *', () => {
+        console.log('update real time comics every 59m');
         (async function () {
             try {
                 await Promise.allSettled(
