@@ -348,7 +348,7 @@ export default function comicsController() {
             const { comicSlug } = req.params as ComicInfoParams;
 
             try {
-                const existComic = await Comic.findOne({ slug: comicSlug });
+                let existComic = await Comic.findOne({ slug: comicSlug });
 
                 if (existComic)
                     return res.status(200).send({
@@ -360,6 +360,8 @@ export default function comicsController() {
 
                 if (!comic)
                     return res.status(404).send({ message: 'not found' });
+
+                existComic = await Comic.findOne({ name: comic.name });
 
                 if (!existComic) {
                     const result = await Comic.create(comic);
