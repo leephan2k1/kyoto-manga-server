@@ -244,7 +244,7 @@ export default class NtModel extends Scraper {
 
                 return chapterList;
             } catch (error) {
-                console.log(`Scrape chapter ${comicSlug} error`);
+                console.log(`Scrape chapter ${comicSlug} error: `, error);
                 logEvents('chapters', `get ${comicSlug} source NTC error!`);
                 return [] as Chapter[];
             }
