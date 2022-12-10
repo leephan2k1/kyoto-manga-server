@@ -406,7 +406,6 @@ export default class NtModel extends Scraper {
                 } catch (error) {
                     console.log('error::: ', error);
 
-                    await browser.close();
                     return [] as Page_Image[];
                 }
             }
